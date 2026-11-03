@@ -5,7 +5,7 @@ from fastapi import APIRouter
 
 from app.core import state
 
-router = APIRouter(prefix="/api/telemetry", tags=["Telemetry"])
+router = APIRouter(prefix="/telemetry", tags=["Telemetry"])
 
 
 @router.get("/summary")

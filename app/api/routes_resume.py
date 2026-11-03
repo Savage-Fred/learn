@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from app.core import resume_matcher
 
-router = APIRouter(prefix="/api/resume", tags=["Resume"])
+router = APIRouter(prefix="/resume", tags=["Resume"])
 
 
 class ResumeAnalyzeRequest(BaseModel):

@@ -73,11 +73,13 @@ async def verify_network_access(request: Request, call_next):
 # Router Registrations
 # -----------------------------------------------------------------------------
 app.include_router(mcp_router)
-app.include_router(topics_router)
-app.include_router(quiz_router)
-app.include_router(interview_router)
-app.include_router(resume_router)
-app.include_router(telemetry_router)
+
+# Standard API routes under /api/...
+app.include_router(topics_router, prefix="/api")
+app.include_router(quiz_router, prefix="/api")
+app.include_router(interview_router, prefix="/api")
+app.include_router(resume_router, prefix="/api")
+app.include_router(telemetry_router, prefix="/api")
 
 # Compatibility aliases for /api/v1/...
 app.include_router(topics_router, prefix="/api/v1", include_in_schema=False)
@@ -106,6 +108,7 @@ async def health_check():
     return {"status": "ok", "version": "0.1.0"}
 
 
+@app.get("/api/status")
 @app.get("/api/v1/status")
 async def platform_status(request: Request):
     """Platform configuration, reachability status, and curriculum availability."""

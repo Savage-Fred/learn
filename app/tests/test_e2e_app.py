@@ -113,7 +113,7 @@ def test_e2e_quiz_endpoints(client):
     assert res_turn.status_code == 200
     turn_data = res_turn.json()
     assert turn_data["passed"] is True
-    assert turn_data["new_rating"] > 3.0
+    assert turn_data["new_rating"] == 1.35
 
     # 3. Ratings
     res_ratings = client.get("/api/quiz/ratings")

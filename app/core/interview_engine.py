@@ -127,101 +127,151 @@ class InterviewEngine:
         mode: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Execute interview turn, handling hints, phase transitions, and adversarial probes."""
-        session_state = self.state_mgr.get_session(session_id)
-        if not session_state:
-            raise KeyError(f"Interview session '{session_id}' not found.")
+        with self.state_mgr.session_lock(session_id):
+            session_state = self.state_mgr.get_session(session_id)
+            if not session_state:
+                raise KeyError(f"Interview session '{session_id}' not found.")
 
-        if session_state.get("finalized"):
-            raise ValueError(f"Interview session '{session_id}' is already finalized.")
+            if session_state.get("finalized"):
+                raise ValueError(f"Interview session '{session_id}' is already finalized.")
 
-        effective_mode = mode or session_state.get("mode", "hints")
+            # 1. Server-Side Timer Validation
+            created_at_str = session_state.get("created_at")
+            limit_mins = session_state.get("time_limit_minutes", 45)
+            time_expired = False
+            remaining_seconds = limit_mins * 60
+            if created_at_str and limit_mins > 0:
+                created_dt = datetime.fromisoformat(created_at_str.replace("Z", "+00:00"))
+                now_dt = datetime.now(timezone.utc)
+                elapsed_sec = (now_dt - created_dt).total_seconds()
+                remaining_seconds = max(0, int(limit_mins * 60 - elapsed_sec))
+                if elapsed_sec > limit_mins * 60:
+                    time_expired = True
 
-        candidate_entry = {
-            "speaker": "candidate",
-            "turn_type": turn_type,
-            "message": message,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-        session_state.setdefault("dialogue", []).append(candidate_entry)
-        session_state.setdefault("turns", []).append(candidate_entry)
-
-        cur_phase = session_state.get("current_phase", "clarification")
-        cur_idx = self.PHASES.index(cur_phase) if cur_phase in self.PHASES else 0
-
-        # Socratic Hint Request vs Strict No-Hints Mode
-        if turn_type == "request_hint" or ("hint" in message.lower() and len(message.split()) <= 4):
-            if effective_mode == "no-hints":
-                interviewer_reply = (
-                    "In this strict interview mode, hints are disabled. "
-                    "Please state your working assumptions and proceed with your technical approach."
+            if time_expired or session_state.get("time_expired"):
+                session_state["time_expired"] = True
+                session_state["current_phase"] = "debrief"
+                self.state_mgr.save_session(session_id, session_state)
+                raise ValueError(
+                    f"Interview session '{session_id}' time limit of {limit_mins} minutes has expired. "
+                    "The session is closed for dialogue turns and must be finalized."
                 )
-            else:
-                remaining = session_state.get("hints_remaining", 0)
-                if remaining <= 0:
-                    interviewer_reply = "Your hint budget is exhausted. Please proceed with your current approach."
+
+            effective_mode = mode or session_state.get("mode", "hints")
+
+            candidate_entry = {
+                "speaker": "candidate",
+                "turn_type": turn_type,
+                "message": message,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+            session_state.setdefault("dialogue", []).append(candidate_entry)
+            session_state.setdefault("turns", []).append(candidate_entry)
+
+            cur_phase = session_state.get("current_phase", "clarification")
+            cur_idx = self.PHASES.index(cur_phase) if cur_phase in self.PHASES else 0
+
+            # 2. Socratic Hint Request vs Strict No-Hints Mode
+            if turn_type == "request_hint" or ("hint" in message.lower() and len(message.split()) <= 4):
+                if effective_mode == "no-hints":
+                    interviewer_reply = (
+                        "In this strict interview mode, hints are disabled. "
+                        "Please state your working assumptions and proceed with your technical approach."
+                    )
                 else:
-                    session_state["hints_remaining"] = remaining - 1
-                    session_state["hints_used"] = session_state.get("hints_used", 0) + 1
-                    used = session_state["hints_used"]
-                    if used == 1:
-                        interviewer_reply = "Hint (Conceptual): Consider the amortized bounds or topological dependency ordering."
-                    elif used == 2:
-                        interviewer_reply = "Hint (Structural): Structure your state using an event queue with monotone timestamps."
+                    remaining = session_state.get("hints_remaining", 0)
+                    if remaining <= 0:
+                        interviewer_reply = "Your hint budget is exhausted. Please proceed with your current approach."
                     else:
-                        interviewer_reply = "Hint (Scaffold): `class Buffer: def __init__(self): self.q = deque()`"
-        else:
-            # Advance phase or adversarial follow-up
-            if effective_mode == "no-hints" and cur_phase == "probing":
-                interviewer_reply = (
-                    "Adversarial follow-up: How does your architecture behave if the primary node suffers "
-                    "an unrecoverable network partition and concurrent writes spike by 100x?"
-                )
+                        session_state["hints_remaining"] = remaining - 1
+                        session_state["hints_used"] = session_state.get("hints_used", 0) + 1
+                        used = session_state["hints_used"]
+                        if used == 1:
+                            interviewer_reply = "Hint (Conceptual): Consider the amortized bounds or topological dependency ordering."
+                        elif used == 2:
+                            interviewer_reply = "Hint (Structural): Structure your state using an event queue with monotone timestamps."
+                        else:
+                            interviewer_reply = "Hint (Scaffold): `class Buffer: def __init__(self): self.q = deque()`"
             else:
-                next_idx = min(len(self.PHASES) - 1, cur_idx + 1)
-                session_state["current_phase"] = self.PHASES[next_idx]
-                interviewer_reply = (
-                    f"Understood. Let us proceed to the {self.PHASES[next_idx].upper()} phase. "
-                    "How do you address edge-case failures and formal invariant verification?"
-                )
+                # Advance phase or adversarial follow-up
+                if effective_mode == "no-hints" and cur_phase == "probing":
+                    interviewer_reply = (
+                        "Adversarial follow-up: How does your architecture behave if the primary node suffers "
+                        "an unrecoverable network partition and concurrent writes spike by 100x?"
+                    )
+                else:
+                    next_idx = min(len(self.PHASES) - 1, cur_idx + 1)
+                    session_state["current_phase"] = self.PHASES[next_idx]
+                    interviewer_reply = (
+                        f"Understood. Let us proceed to the {self.PHASES[next_idx].upper()} phase. "
+                        "How do you address edge-case failures and formal invariant verification?"
+                    )
 
-        interviewer_entry = {
-            "speaker": "interviewer",
-            "turn_type": "interviewer_dialog",
-            "message": interviewer_reply,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-        session_state["dialogue"].append(interviewer_entry)
-        session_state["turns"].append(interviewer_entry)
+                # 3. Dynamic LLM Turn Generation when mock mode is disabled
+                if not self.router.use_mock_llm and not settings.use_mock_llm:
+                    dialogue_history = "\n".join(
+                        f"{t.get('speaker', 'user')}: {t.get('message', '')}"
+                        for t in session_state.get("dialogue", [])[-6:]
+                    )
+                    prompt = (
+                        f"You are conducting a calibrated {session_state.get('target_company', 'FAANG')} "
+                        f"{session_state.get('role_track', 'SWE')} interview on {session_state.get('topic', 'systems')}.\n"
+                        f"Current Phase: {session_state.get('current_phase')}\n"
+                        f"Mode: {effective_mode}\n"
+                        f"Recent Conversation:\n{dialogue_history}\n\n"
+                        f"Candidate's latest turn: {message}\n\n"
+                        f"Respond as the interviewer with a probing, Socratic follow-up question under 3 sentences."
+                    )
+                    try:
+                        route_res = self.router.route(prompt=prompt, workflow="interview_turn")
+                        llm_reply = route_res.get("text", "").strip()
+                        if llm_reply:
+                            interviewer_reply = llm_reply
+                    except Exception:
+                        pass  # Fall back gracefully to deterministic reply
 
-        self.state_mgr.save_session(session_id, session_state)
+            interviewer_entry = {
+                "speaker": "interviewer",
+                "turn_type": "interviewer_dialog",
+                "message": interviewer_reply,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+            session_state["dialogue"].append(interviewer_entry)
+            session_state["turns"].append(interviewer_entry)
 
-        return {
-            "session_id": session_id,
-            "current_phase": session_state["current_phase"],
-            "interviewer_message": interviewer_reply,
-            "hints_remaining": session_state.get("hints_remaining", 0),
-            "hints_used": session_state.get("hints_used", 0),
-            "turn_count": len(session_state["turns"]),
-        }
+            self.state_mgr.save_session(session_id, session_state)
+
+            return {
+                "session_id": session_id,
+                "current_phase": session_state["current_phase"],
+                "interviewer_message": interviewer_reply,
+                "hints_remaining": session_state.get("hints_remaining", 0),
+                "hints_used": session_state.get("hints_used", 0),
+                "turn_count": len(session_state["turns"]),
+                "time_remaining_seconds": remaining_seconds,
+                "time_expired": False,
+            }
 
     def finalize_interview(self, session_id: str) -> Dict[str, Any]:
         """Idempotently score completed interview session and persist scorecard."""
-        session_state = self.state_mgr.get_session(session_id)
-        if not session_state:
-            raise KeyError(f"Interview session '{session_id}' not found.")
+        with self.state_mgr.session_lock(session_id):
+            session_state = self.state_mgr.get_session(session_id)
+            if not session_state:
+                raise KeyError(f"Interview session '{session_id}' not found.")
 
-        existing_scorecard = self.state_mgr.get_scorecard(session_id)
-        if session_state.get("finalized") and existing_scorecard:
-            return existing_scorecard
+            existing_scorecard = self.state_mgr.get_scorecard(session_id)
+            if session_state.get("finalized") and existing_scorecard:
+                return existing_scorecard
 
-        # Generate scorecard via RubricScorer
-        scorecard = self.scorer.score_interview(session_state)
+            # Generate scorecard via RubricScorer
+            scorecard = self.scorer.score_interview(session_state)
 
-        session_state["finalized"] = True
-        session_state["scorecard"] = scorecard
-        self.state_mgr.save_session(session_id, session_state)
+            session_state["finalized"] = True
+            session_state["scorecard"] = scorecard
+            self.state_mgr.save_session(session_id, session_state)
 
-        return scorecard
+            return scorecard
 
 
 interview_engine = InterviewEngine()
+

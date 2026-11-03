@@ -65,6 +65,31 @@
 - **Resolution**: Implemented `scrub_pii()` in `app/core/durable_capture.py` regex-scrubbing emails, phone numbers, bearer tokens, and scores prior to committing to `<domain>/<topic>/learnings/`.
 - **Verification**: Verified in `test_e2e_topics_endpoints`.
 
+### Finding 10: State Concurrency Locking & 5-Phase Re-Entrant Lock Protocol (Astra / Sol)
+- **Observation**: Calling `safe_read_json` or `atomic_write_json` from within an existing transaction caused POSIX `flock(2)` self-deadlock on Linux. Concurrent read-modify-write operations on `pinned_topics.json` and `subdomain_ratings.json` suffered lost updates.
+- **Resolution**: Implemented thread-local re-entrant lock tracking (`_lock_state = threading.local()`) in `file_lock` with lock depth counting. Added canonical resource locks (`ratings_lock`, `pinned_topics_lock`, `session_lock`, `scorecard_lock`) and executed a strict 5-phase transaction protocol: canonical path resolution, lock acquisition, safe read, in-memory mutation, and atomic write.
+- **Verification**: Verified with `/tmp/stress_concurrency_m4.py` (30 concurrent sessions, 200 log appends, 20 concurrent pins, 20 concurrent rating updates: 0 lost updates, 0 corruption) and un-xfailed tests in `test_adversarial_challenge.py` and `test_adversarial_deep_probe.py`.
+
+### Finding 11: Genuine 5-Dimension Rubric Scoring & Full Spectrum [1.0, 5.0] (Astra / Sol / Claude)
+- **Observation**: The initial rubric scorer was a static facade returning 4.38 Strong Hire for all inputs (including empty transcripts or surrender messages), ignoring candidate turns and leaving hiring tiers dead code.
+- **Resolution**: Replaced facade with genuine dialogue transcript analysis evaluating Decomposition, Execution, Architecture, Resilience, and Communication across the full [1.0, 5.0] spectrum. Implemented dynamic company profile weight boosts and anti-pattern penalty checks across all 7 companies (OpenAI, Google, Anthropic, Meta, Databricks, Netflix, Apple). Reconciled unassessed topic baseline rating to 1.0.
+- **Verification**: Verified in `test_rubric_scorer_weights_and_company_profiles` and empirical spectrum scoring tests.
+
+### Finding 12: Server-Side Elapsed Countdown Timer Enforcement (Sol)
+- **Observation**: `InterviewEngine.interview_turn` never verified elapsed session duration against `time_limit_minutes`, allowing dialogue turns long after session expiry.
+- **Resolution**: Added server-side elapsed timer validation in `interview_turn` computing elapsed seconds against `time_limit_minutes`. Expired turns auto-transition the session to debrief and raise `ValueError` (HTTP 400).
+- **Verification**: Verified in `test_interview.py` and `test_e2e_interview_endpoints`.
+
+### Finding 13: FastAPI Sub-Router Prefixing & Clean /api and /api/v1 Mounts (Sol / Claude)
+- **Observation**: Declaring `/api/...` in sub-router definitions caused `/api/v1/api/...` double-prefix 404s. Path traversal attempts raised unhandled `ValueError` resulting in HTTP 500 instead of HTTP 400.
+- **Resolution**: Stripped `/api` from sub-router definitions (`/topics`, `/quiz`, `/interview`, `/resume`, `/telemetry`). In `app/main.py`, cleanly mounted routers under `prefix="/api"` and `prefix="/api/v1"`, and added `@app.get("/api/status")` alias. Wrapped `sanitize_identifier` and `topic_loader.list_topics` in `try ... except ValueError: raise HTTPException(status_code=400)`.
+- **Verification**: Verified in `test_e2e_app.py` and route traversal probes.
+
+### Finding 14: Browser WebSocket Client & Zero-CDN Micro-Highlighter (Astra / Claude)
+- **Observation**: Web UI needed authentic streaming WebSocket integration with typing indicator and fallback, as well as offline zero-CDN syntax highlighting for code samples.
+- **Resolution**: In `app/ui/static/app.js`, implemented browser `WebSocket` streaming client with animated `.typing-cursor`, `#interview-ws-status` indicator, and REST fallback. Implemented zero-CDN `MicroHighlighter` regex tokenizer for Python, Go, Rust, and YAML hooked into quiz prompts and topic rubrics. Added matching CSS token classes in `app/ui/static/styles.css`.
+- **Verification**: Verified in `test_e2e_websocket_stream` and browser DOM integration tests.
+
 ---
 
 ## 3. Test Suite Verification
@@ -73,18 +98,20 @@
 ```
 platform linux -- Python 3.13.12, pytest-9.2.0, pluggy-1.7.0
 rootdir: /home/will/dev/learn/.worktrees/app-ui
-collected 93 items
+collected 109 items
 
-app/tests/test_adaptive.py .......                                        [  7%]
-app/tests/test_curricula_integrity.py ...........                         [ 19%]
-app/tests/test_e2e_app.py .........                                       [ 29%]
-app/tests/test_foundation.py ............                                 [ 41%]
-app/tests/test_interview.py ........                                      [ 50%]
-app/tests/test_mcp.py .......................                             [ 75%]
-app/tests/test_router.py ................                                 [ 92%]
+app/tests/test_adaptive.py .......                                        [  6%]
+app/tests/test_adversarial_challenge.py .........                         [ 14%]
+app/tests/test_adversarial_deep_probe.py .......                          [ 21%]
+app/tests/test_curricula_integrity.py ...........                         [ 31%]
+app/tests/test_e2e_app.py .........                                       [ 39%]
+app/tests/test_foundation.py ............                                 [ 50%]
+app/tests/test_interview.py ........                                      [ 57%]
+app/tests/test_mcp.py .......................                             [ 78%]
+app/tests/test_router.py ................                                 [ 93%]
 app/tests/test_storage.py .......                                         [100%]
 
-======================== 93 passed, 1 warning in 0.95s =========================
+======================== 109 passed, 1 warning in 1.02s ========================
 ```
 
 ### Opaque-Box E2E Suite (`tests_e2e/runner.py`)
@@ -142,3 +169,4 @@ git status --porcelain
 ```
 Confirmed 100% clean of personal state files, temporary logs, or credentials.
 All personal data is strictly isolated outside the git repository tree.
+

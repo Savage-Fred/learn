@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.core import adaptive_engine, state, sanitize_identifier
 
-router = APIRouter(prefix="/api/quiz", tags=["Quiz"])
+router = APIRouter(prefix="/quiz", tags=["Quiz"])
 
 
 class QuizStartRequest(BaseModel):

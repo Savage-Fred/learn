@@ -447,6 +447,142 @@ async function togglePinTopic(domain, slug) {
   }
 }
 
+// =============================================================================
+// MICRO-SYNTAX HIGHLIGHTER (Vanilla ES Module, Zero-CDN)
+// =============================================================================
+const MicroHighlighter = {
+  escape(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+
+  languages: {
+    python: {
+      regex: /(#.*$)|("""[\s\S]*?"""|'''[\s\S]*?''')|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|(\s+)|([^a-zA-Z0-9_\s#"']+)/gm,
+      keywords: new Set([
+        'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue',
+        'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from',
+        'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not',
+        'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield',
+        'True', 'False', 'None', 'self', 'cls'
+      ]),
+      types: new Set([
+        'int', 'float', 'str', 'bool', 'bytes', 'list', 'dict', 'set', 'tuple',
+        'object', 'type', 'Any', 'Union', 'Optional', 'List', 'Dict', 'Set',
+        'Tuple', 'Callable', 'Protocol', 'TypeVar', 'Generic'
+      ])
+    },
+    go: {
+      regex: /(\/\/.*$|\/\*[\s\S]*?\*\/)|(`[^`]*`|"(?:\\.|[^"\\])*")|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|(\s+)|([^a-zA-Z0-9_\s"'`\/]+|\/[^\/\*])/gm,
+      keywords: new Set([
+        'break', 'case', 'chan', 'const', 'continue', 'default', 'defer',
+        'else', 'fallthrough', 'for', 'func', 'go', 'goto', 'if', 'import',
+        'interface', 'map', 'package', 'range', 'return', 'select', 'struct',
+        'switch', 'type', 'var', 'true', 'false', 'nil', 'iota'
+      ]),
+      types: new Set([
+        'bool', 'byte', 'complex64', 'complex128', 'error', 'float32', 'float64',
+        'int', 'int8', 'int16', 'int32', 'int64', 'rune', 'string', 'uint',
+        'uint8', 'uint16', 'uint32', 'uint64', 'uintptr', 'any'
+      ])
+    },
+    rust: {
+      regex: /(\/\/.*$|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])')|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|(\s+)|([^a-zA-Z0-9_\s"'/]+|\/[^\/\*])/gm,
+      keywords: new Set([
+        'as', 'async', 'await', 'break', 'const', 'continue', 'crate', 'dyn',
+        'else', 'enum', 'extern', 'false', 'fn', 'for', 'if', 'impl', 'in',
+        'let', 'loop', 'match', 'mod', 'move', 'mut', 'pub', 'ref', 'return',
+        'self', 'Self', 'static', 'struct', 'super', 'trait', 'true', 'type',
+        'unsafe', 'use', 'where', 'while'
+      ]),
+      types: new Set([
+        'bool', 'char', 'i8', 'i16', 'i32', 'i64', 'i128', 'isize',
+        'u8', 'u16', 'u32', 'u64', 'u128', 'usize', 'f32', 'f64',
+        'str', 'String', 'Option', 'Some', 'None', 'Result', 'Ok', 'Err',
+        'Vec', 'Box', 'Rc', 'Arc', 'Mutex'
+      ])
+    },
+    yaml: {
+      regex: /(#.*$)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|(\b[a-zA-Z0-9_-]+\b(?=\s*:))|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|(\s+)|([^a-zA-Z0-9_\s#"']+)/gm,
+      keywords: new Set([
+        'true', 'false', 'yes', 'no', 'on', 'off', 'null', '~',
+        'TRUE', 'FALSE', 'YES', 'NO', 'ON', 'OFF', 'NULL'
+      ]),
+      types: new Set([
+        '!!str', '!!int', '!!float', '!!bool', '!!map', '!!seq', '!!null'
+      ])
+    }
+  },
+
+  highlight(code, lang = 'python') {
+    const norm = (lang || 'python').toLowerCase().trim();
+    const l = norm === 'py' ? 'python' : (norm === 'golang' ? 'go' : (norm === 'rs' ? 'rust' : (norm === 'yml' ? 'yaml' : norm)));
+    const config = this.languages[l] || this.languages['python'];
+    const re = new RegExp(config.regex.source, 'gm');
+    let out = '';
+    let m;
+    while ((m = re.exec(code)) !== null) {
+      const [full, comment, str, num, identOrKey, ident, ws, punct] = m;
+      if (comment) out += `<span class="tok-comment">${this.escape(comment)}</span>`;
+      else if (str) out += `<span class="tok-string">${this.escape(str)}</span>`;
+      else if (num) out += `<span class="tok-number">${this.escape(num)}</span>`;
+      else if (l === 'yaml' && identOrKey) {
+        out += `<span class="tok-key">${this.escape(identOrKey)}</span>`;
+      } else if (ident || identOrKey) {
+        const id = ident || identOrKey;
+        if (config.keywords.has(id)) out += `<span class="tok-keyword">${this.escape(id)}</span>`;
+        else if (config.types.has(id)) out += `<span class="tok-type">${this.escape(id)}</span>`;
+        else out += this.escape(id);
+      } else if (ws) out += ws;
+      else if (punct) out += `<span class="tok-punct">${this.escape(punct)}</span>`;
+      else out += this.escape(full);
+    }
+    return out;
+  },
+
+  renderMarkdownWithHighlighting(markdown, defaultLang = 'python') {
+    if (!markdown) return '';
+    const parts = [];
+    let lastIndex = 0;
+    const fenceRe = /```([a-zA-Z0-9_-]+)?\n([\s\S]*?)```/g;
+    let match;
+    while ((match = fenceRe.exec(markdown)) !== null) {
+      const textBefore = markdown.slice(lastIndex, match.index);
+      const fenceLang = match[1] || defaultLang;
+      const code = match[2];
+      parts.push(this.formatMarkdownText(textBefore));
+      parts.push(`<pre class="code-pre language-${fenceLang}"><code>${this.highlight(code, fenceLang)}</code></pre>`);
+      lastIndex = fenceRe.lastIndex;
+    }
+    parts.push(this.formatMarkdownText(markdown.slice(lastIndex)));
+    return parts.join('');
+  },
+
+  formatMarkdownText(text) {
+    if (!text) return '';
+    return this.escape(text)
+      .replace(/^### (.*$)/gim, '<h4 style="margin:8px 0 4px;font-size:14px;font-weight:600;">$1</h4>')
+      .replace(/^## (.*$)/gim, '<h3 style="margin:12px 0 6px;font-size:16px;font-weight:700;">$1</h3>')
+      .replace(/^# (.*$)/gim, '<h2 style="margin:14px 0 8px;font-size:18px;font-weight:700;">$1</h2>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
+      .replace(/\n/g, '<br>');
+  },
+
+  renderToElement(element, content, defaultLang = 'python') {
+    if (!element) return;
+    if (content && content.includes('```')) {
+      element.innerHTML = this.renderMarkdownWithHighlighting(content, defaultLang);
+    } else {
+      element.innerHTML = `<pre class="code-pre language-${defaultLang}"><code>${this.highlight(content || '', defaultLang)}</code></pre>`;
+    }
+  }
+};
+
 // Load and Render Topic Detail
 async function loadTopicDetail(domain, topicSlug) {
   showView('topic-detail');
@@ -459,9 +595,9 @@ async function loadTopicDetail(domain, topicSlug) {
     Store.setState({ activeTopicDetail: detail });
 
     // Fundamentals
-    document.getElementById('topic-fundamentals-content').textContent = detail.fundamentals || 'No fundamentals documented.';
+    MicroHighlighter.renderToElement(document.getElementById('topic-fundamentals-content'), detail.fundamentals || 'No fundamentals documented.', 'python');
     // Rubric
-    document.getElementById('topic-rubric-content').textContent = detail.rubric || 'No rubric documented.';
+    MicroHighlighter.renderToElement(document.getElementById('topic-rubric-content'), detail.rubric || 'No rubric documented.', 'yaml');
 
     // References
     const refContainer = document.getElementById('topic-references-content');
@@ -542,7 +678,7 @@ async function startQuizSession(topicSlug, initialTier = 'starter') {
   try {
     const sessionData = await API.startQuiz(topicSlug, initialTier);
     Store.setState({ activeQuizSession: sessionData });
-    document.getElementById('quiz-problem-prompt').textContent = sessionData.prompt;
+    MicroHighlighter.renderToElement(document.getElementById('quiz-problem-prompt'), sessionData.prompt, 'python');
 
     const ratings = await API.getRatings();
     const currentRating = ratings.ratings?.[topicSlug] || 3.0;
@@ -595,7 +731,7 @@ async function submitQuizAnswer() {
           prompt: res.next_exercise.prompt,
         }
       });
-      document.getElementById('quiz-problem-prompt').textContent = res.next_exercise.prompt;
+      MicroHighlighter.renderToElement(document.getElementById('quiz-problem-prompt'), res.next_exercise.prompt, 'python');
       document.getElementById('quiz-tier-badge').textContent = res.next_difficulty_level.toUpperCase();
       document.getElementById('quiz-code-editor').value = '';
       drawer.style.display = 'none';
@@ -611,9 +747,110 @@ async function submitQuizAnswer() {
   }
 }
 
-// Interview Controller
+// =============================================================================
+// INTERVIEW CONTROLLER (WebSocket Stream with REST Fallback)
+// =============================================================================
 let interviewTimerInterval = null;
 let interviewSecondsRemaining = 45 * 60;
+let interviewWebSocket = null;
+let activeStreamingMessageEl = null;
+
+function setInterviewWsStatus(text, className) {
+  const statusEl = document.getElementById('interview-ws-status');
+  if (statusEl) {
+    statusEl.textContent = text;
+    statusEl.className = className || '';
+  }
+}
+
+function connectInterviewWebSocket(sessionId) {
+  if (interviewWebSocket) {
+    try { interviewWebSocket.close(); } catch (e) {}
+    interviewWebSocket = null;
+  }
+
+  setInterviewWsStatus('● Connecting WS...', 'ws-connecting');
+
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = window.location.host;
+  const token = Store.state.apiToken;
+  const tokenQuery = token ? `?token=${encodeURIComponent(token)}` : '';
+  const wsUrl = `${protocol}//${host}/api/interview/${sessionId}/stream${tokenQuery}`;
+
+  try {
+    const ws = new WebSocket(wsUrl);
+    interviewWebSocket = ws;
+
+    ws.onopen = () => {
+      if (ws !== interviewWebSocket) return;
+      setInterviewWsStatus('● WebSocket Active', 'ws-active');
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        handleWebSocketMessage(data);
+      } catch (err) {
+        console.error('Failed to parse WebSocket message frame:', err);
+      }
+    };
+
+    ws.onerror = (err) => {
+      console.warn('WebSocket stream encountered error; operating in REST fallback mode.', err);
+      setInterviewWsStatus('○ REST Fallback', 'ws-fallback');
+    };
+
+    ws.onclose = () => {
+      if (ws === interviewWebSocket) {
+        setInterviewWsStatus('○ REST Fallback', 'ws-fallback');
+        interviewWebSocket = null;
+      }
+    };
+  } catch (err) {
+    console.warn('WebSocket instantiation failed, defaulting to REST:', err);
+    setInterviewWsStatus('○ REST Fallback', 'ws-fallback');
+  }
+}
+
+function handleWebSocketMessage(data) {
+  if (data.type === 'chunk') {
+    if (activeStreamingMessageEl) {
+      const content = activeStreamingMessageEl.querySelector('.stream-content');
+      if (content) {
+        content.textContent += data.delta;
+      }
+      const feed = document.getElementById('interview-chat-feed');
+      if (feed) feed.scrollTop = feed.scrollHeight;
+    }
+  } else if (data.type === 'done') {
+    if (activeStreamingMessageEl) {
+      const content = activeStreamingMessageEl.querySelector('.stream-content');
+      if (content && data.interviewer_message) {
+        content.textContent = data.interviewer_message;
+      }
+      const cursor = activeStreamingMessageEl.querySelector('.typing-cursor');
+      if (cursor) cursor.remove();
+      activeStreamingMessageEl = null;
+    }
+    updateInterviewPhase(data.current_phase);
+    updateHintsBudget(data.hints_remaining);
+    setTurnInputEnabled(true);
+  } else if (data.type === 'error') {
+    showToast(data.message || 'Stream error', 'danger');
+    if (activeStreamingMessageEl) {
+      activeStreamingMessageEl.remove();
+      activeStreamingMessageEl = null;
+    }
+    setTurnInputEnabled(true);
+  }
+}
+
+function setTurnInputEnabled(enabled) {
+  const input = document.getElementById('interview-turn-input');
+  const btnSend = document.getElementById('btn-send-interview-turn');
+  if (input) input.disabled = !enabled;
+  if (btnSend) btnSend.disabled = !enabled;
+}
 
 async function startInterviewSession(topicSlug, roleTrack = 'faang_swe_l5_l6', targetCompany = 'Google') {
   showView('interview');
@@ -632,12 +869,15 @@ async function startInterviewSession(topicSlug, roleTrack = 'faang_swe_l5_l6', t
     });
     Store.setState({ activeInterviewSession: sessionData });
 
-    // Add welcome message
+    // Render welcome message
     appendChatMessage('interviewer', sessionData.interviewer_message);
     updateInterviewPhase(sessionData.current_phase);
     updateHintsBudget(sessionData.hints_remaining);
 
-    // Start timer
+    // Establish authentic WebSocket streaming connection
+    connectInterviewWebSocket(sessionData.session_id);
+
+    // Start timer countdown
     clearInterval(interviewTimerInterval);
     interviewSecondsRemaining = 45 * 60;
     interviewTimerInterval = setInterval(() => {
@@ -695,16 +935,53 @@ async function sendInterviewTurn(turnType = 'candidate_dialog', customMessage = 
     input.value = '';
   }
 
+  // Attempt WebSocket stream if socket is OPEN
+  if (interviewWebSocket && interviewWebSocket.readyState === WebSocket.OPEN) {
+    try {
+      const feed = document.getElementById('interview-chat-feed');
+      const msg = document.createElement('div');
+      msg.className = `chat-msg ${turnType === 'request_hint' ? 'hint' : 'interviewer'}`;
+
+      const contentSpan = document.createElement('span');
+      contentSpan.className = 'stream-content';
+      const cursorSpan = document.createElement('span');
+      cursorSpan.className = 'typing-cursor';
+
+      msg.appendChild(contentSpan);
+      msg.appendChild(cursorSpan);
+      feed.appendChild(msg);
+      feed.scrollTop = feed.scrollHeight;
+      activeStreamingMessageEl = msg;
+
+      setTurnInputEnabled(false);
+      interviewWebSocket.send(JSON.stringify({
+        message: message,
+        turn_type: turnType,
+      }));
+      return;
+    } catch (wsErr) {
+      console.warn('WS send failed; falling back to REST:', wsErr);
+      if (activeStreamingMessageEl) {
+        activeStreamingMessageEl.remove();
+        activeStreamingMessageEl = null;
+      }
+    }
+  }
+
+  // Graceful REST Fallback
   try {
+    setTurnInputEnabled(false);
     const res = await API.submitInterviewTurn(session.session_id, {
       user_response: message,
       turn_type: turnType,
     });
-    appendChatMessage('interviewer', res.interviewer_message);
+    appendChatMessage(turnType === 'request_hint' ? 'hint' : 'interviewer', res.interviewer_message);
     updateInterviewPhase(res.current_phase);
     updateHintsBudget(res.hints_remaining);
   } catch (err) {
     showToast(`Turn failed: ${err.message}`, 'danger');
+  } finally {
+    setTurnInputEnabled(true);
   }
 }
 
@@ -712,6 +989,10 @@ async function finalizeInterview() {
   const session = Store.state.activeInterviewSession;
   if (!session) return;
   try {
+    if (interviewWebSocket) {
+      try { interviewWebSocket.close(); } catch (e) {}
+      interviewWebSocket = null;
+    }
     const scorecard = await API.getScorecard(session.session_id);
     clearInterval(interviewTimerInterval);
     openScorecardModal(scorecard);
@@ -720,6 +1001,7 @@ async function finalizeInterview() {
     showToast(`Failed to finalize interview: ${err.message}`, 'danger');
   }
 }
+
 
 function openScorecardModal(card) {
   const modal = document.getElementById('modal-scorecard');

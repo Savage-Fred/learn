@@ -13,7 +13,7 @@ from app.core import (
     sanitize_identifier,
 )
 
-router = APIRouter(prefix="/api/interview", tags=["Interview"])
+router = APIRouter(prefix="/interview", tags=["Interview"])
 
 
 class InterviewStartRequest(BaseModel):

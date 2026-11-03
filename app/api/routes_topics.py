@@ -14,7 +14,7 @@ from app.core import (
     ALLOWED_DOMAINS,
 )
 
-router = APIRouter(prefix="/api/topics", tags=["Topics"])
+router = APIRouter(prefix="/topics", tags=["Topics"])
 
 
 class PinRequest(BaseModel):
@@ -38,7 +38,10 @@ class DurableLearningCreate(BaseModel):
 async def list_topics(domain: Optional[str] = Query(default="all")):
     """List all available curriculum topics, metadata, problem counts, and user status."""
     domain_filter = str(domain).lower() if domain else "all"
-    topics = topic_loader.list_topics(domain_filter=domain_filter)
+    try:
+        topics = topic_loader.list_topics(domain_filter=domain_filter)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     pinned_slugs = {p.get("topic_id") or p.get("topic_slug") for p in state.get_pinned_topics()}
     ratings = state.get_subdomain_ratings()
@@ -67,8 +70,11 @@ async def get_pinned():
 @router.get("/{domain}/{topic_slug}")
 async def get_topic_detail(domain: str, topic_slug: str):
     """Retrieve complete topic payload including fundamentals, references, rubrics, and exercises."""
-    clean_domain = sanitize_identifier(domain).lower()
-    clean_slug = sanitize_identifier(topic_slug).lower()
+    try:
+        clean_domain = sanitize_identifier(domain).lower()
+        clean_slug = sanitize_identifier(topic_slug).lower()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     detail = topic_loader.load_topic_detail(clean_domain, clean_slug)
     if not detail:
@@ -86,8 +92,11 @@ async def get_topic_detail(domain: str, topic_slug: str):
 @router.post("/{domain}/{topic_slug}/pin")
 async def pin_topic_endpoint(domain: str, topic_slug: str, req: PinRequest):
     """Pin a topic to the user's priority study dashboard."""
-    clean_domain = sanitize_identifier(domain)
-    clean_slug = sanitize_identifier(topic_slug)
+    try:
+        clean_domain = sanitize_identifier(domain)
+        clean_slug = sanitize_identifier(topic_slug)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     result = state.pin_topic(topic_slug=clean_slug, domain=clean_domain, priority=req.priority, notes=req.notes)
     return result
 
@@ -95,8 +104,11 @@ async def pin_topic_endpoint(domain: str, topic_slug: str, req: PinRequest):
 @router.delete("/{domain}/{topic_slug}/pin")
 async def unpin_topic_endpoint(domain: str, topic_slug: str):
     """Unpin a topic from the user's dashboard."""
-    clean_domain = sanitize_identifier(domain)
-    clean_slug = sanitize_identifier(topic_slug)
+    try:
+        clean_domain = sanitize_identifier(domain)
+        clean_slug = sanitize_identifier(topic_slug)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     removed = state.unpin_topic(clean_slug)
     return {"status": "unpinned", "topic_id": clean_slug, "domain": clean_domain, "found": removed}
 
@@ -104,7 +116,10 @@ async def unpin_topic_endpoint(domain: str, topic_slug: str):
 @router.post("/{topic_slug}/pin")
 async def pin_topic_direct(topic_slug: str, req: PinRequest):
     """Compatibility route: Pin topic without specifying domain in path."""
-    clean_slug = sanitize_identifier(topic_slug)
+    try:
+        clean_slug = sanitize_identifier(topic_slug)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     result = state.pin_topic(topic_slug=clean_slug, priority=req.priority, notes=req.notes)
     return result
 
@@ -112,9 +127,13 @@ async def pin_topic_direct(topic_slug: str, req: PinRequest):
 @router.delete("/{topic_slug}/pin")
 async def unpin_topic_direct(topic_slug: str):
     """Compatibility route: Unpin topic without specifying domain in path."""
-    clean_slug = sanitize_identifier(topic_slug)
+    try:
+        clean_slug = sanitize_identifier(topic_slug)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     removed = state.unpin_topic(clean_slug)
     return {"status": "unpinned", "topic_id": clean_slug, "found": removed}
+
 
 
 @router.post("/{domain}/{topic_slug}/learnings")

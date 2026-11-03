@@ -14,16 +14,41 @@ from typing import Any, Dict, List, Optional
 from app.config import settings
 
 
+import threading
+
+_lock_state = threading.local()
+
+
 @contextmanager
 def file_lock(lock_file_path: Path):
-    """Context manager acquiring an exclusive file lock via fcntl."""
-    lock_file_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(lock_file_path, "w") as f:
-        fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+    """Context manager acquiring an exclusive, thread-reentrant file lock via fcntl."""
+    canonical_path = str(lock_file_path.resolve())
+    if not hasattr(_lock_state, "locks"):
+        _lock_state.locks = {}
+
+    # Thread-local re-entrancy: avoid self-deadlock on nested lock calls
+    if canonical_path in _lock_state.locks:
+        _lock_state.locks[canonical_path]["count"] += 1
         try:
             yield
         finally:
-            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+            _lock_state.locks[canonical_path]["count"] -= 1
+        return
+
+    lock_file_path.parent.mkdir(parents=True, exist_ok=True)
+    f = open(lock_file_path, "a")
+    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+    _lock_state.locks[canonical_path] = {"file": f, "count": 1}
+    try:
+        yield
+    finally:
+        _lock_state.locks[canonical_path]["count"] -= 1
+        if _lock_state.locks[canonical_path]["count"] == 0:
+            del _lock_state.locks[canonical_path]
+            try:
+                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+            finally:
+                f.close()
 
 
 def sanitize_identifier(identifier: str) -> str:
@@ -95,6 +120,47 @@ class StateManager:
         (self.data_dir / "interviews" / "scorecards").mkdir(parents=True, exist_ok=True)
 
     # -------------------------------------------------------------------------
+    # Canonical Resource Locks
+    # -------------------------------------------------------------------------
+    @property
+    def ratings_lock_file(self) -> Path:
+        return self.ratings_file.with_suffix(self.ratings_file.suffix + ".lock")
+
+    @contextmanager
+    def ratings_lock(self):
+        with file_lock(self.ratings_lock_file):
+            yield
+
+    @property
+    def pinned_topics_lock_file(self) -> Path:
+        return self.pinned_topics_file.with_suffix(self.pinned_topics_file.suffix + ".lock")
+
+    @contextmanager
+    def pinned_topics_lock(self):
+        with file_lock(self.pinned_topics_lock_file):
+            yield
+
+    def session_lock_file(self, session_id: str) -> Path:
+        clean_id = sanitize_identifier(session_id)
+        return self.data_dir / "sessions" / f"{clean_id}.json.lock"
+
+    @contextmanager
+    def session_lock(self, session_id: str):
+        clean_id = sanitize_identifier(session_id)
+        with file_lock(self.session_lock_file(clean_id)):
+            yield
+
+    def scorecard_lock_file(self, session_id: str) -> Path:
+        clean_id = sanitize_identifier(session_id)
+        return self.data_dir / "sessions" / f"{clean_id}_scorecard.json.lock"
+
+    @contextmanager
+    def scorecard_lock(self, session_id: str):
+        clean_id = sanitize_identifier(session_id)
+        with file_lock(self.scorecard_lock_file(clean_id)):
+            yield
+
+    # -------------------------------------------------------------------------
     # Pinned Topics (Dual-Path: root pinned_topics.json and pins/pinned_topics.json)
     # -------------------------------------------------------------------------
     @property
@@ -106,10 +172,11 @@ class StateManager:
         return self.data_dir / "pins" / "pinned_topics.json"
 
     def get_pinned_topics(self) -> List[Dict[str, Any]]:
-        pins = safe_read_json(self.pinned_topics_file)
-        if pins is None:
-            pins = safe_read_json(self.pinned_topics_alias_file, default=[])
-        return pins or []
+        with self.pinned_topics_lock():
+            pins = safe_read_json(self.pinned_topics_file)
+            if pins is None:
+                pins = safe_read_json(self.pinned_topics_alias_file, default=[])
+            return pins or []
 
     def pin_topic(
         self,
@@ -122,45 +189,53 @@ class StateManager:
         if priority not in ("high", "medium", "low"):
             raise ValueError(f"Priority must be one of ('high', 'medium', 'low'), got '{priority}'.")
 
-        pins = self.get_pinned_topics()
-        timestamp = datetime.now(timezone.utc).isoformat()
+        with self.pinned_topics_lock():
+            pins = safe_read_json(self.pinned_topics_file)
+            if pins is None:
+                pins = safe_read_json(self.pinned_topics_alias_file, default=[])
+            pins = pins or []
+            timestamp = datetime.now(timezone.utc).isoformat()
 
-        found = False
-        result_item = None
-        for item in pins:
-            if item.get("topic_id") == clean_slug or item.get("topic_slug") == clean_slug:
-                item["priority"] = priority
-                item["notes"] = notes or ""
-                item["updated_at"] = timestamp
-                result_item = item
-                found = True
-                break
+            found = False
+            result_item = None
+            for item in pins:
+                if item.get("topic_id") == clean_slug or item.get("topic_slug") == clean_slug:
+                    item["priority"] = priority
+                    item["notes"] = notes or ""
+                    item["updated_at"] = timestamp
+                    result_item = item
+                    found = True
+                    break
 
-        if not found:
-            result_item = {
-                "topic_id": clean_slug,
-                "topic_slug": clean_slug,
-                "domain": domain,
-                "priority": priority,
-                "notes": notes or "",
-                "pinned_at": timestamp,
-            }
-            pins.append(result_item)
+            if not found:
+                result_item = {
+                    "topic_id": clean_slug,
+                    "topic_slug": clean_slug,
+                    "domain": domain,
+                    "priority": priority,
+                    "notes": notes or "",
+                    "pinned_at": timestamp,
+                }
+                pins.append(result_item)
 
-        atomic_write_json(self.pinned_topics_file, pins)
-        atomic_write_json(self.pinned_topics_alias_file, pins)
-        return {"status": "pinned", **result_item}
+            atomic_write_json(self.pinned_topics_file, pins)
+            atomic_write_json(self.pinned_topics_alias_file, pins)
+            return {"status": "pinned", **result_item}
 
     def unpin_topic(self, topic_slug: str) -> bool:
         clean_slug = sanitize_identifier(topic_slug)
-        pins = self.get_pinned_topics()
-        initial_len = len(pins)
-        pins = [p for p in pins if p.get("topic_id") != clean_slug and p.get("topic_slug") != clean_slug]
-        removed = len(pins) < initial_len
+        with self.pinned_topics_lock():
+            pins = safe_read_json(self.pinned_topics_file)
+            if pins is None:
+                pins = safe_read_json(self.pinned_topics_alias_file, default=[])
+            pins = pins or []
+            initial_len = len(pins)
+            pins = [p for p in pins if p.get("topic_id") != clean_slug and p.get("topic_slug") != clean_slug]
+            removed = len(pins) < initial_len
 
-        atomic_write_json(self.pinned_topics_file, pins)
-        atomic_write_json(self.pinned_topics_alias_file, pins)
-        return removed
+            atomic_write_json(self.pinned_topics_file, pins)
+            atomic_write_json(self.pinned_topics_alias_file, pins)
+            return removed
 
     # -------------------------------------------------------------------------
     # Subdomain Ratings (Dual-Path: ratings/subdomain_ratings.json and subdomain_ratings.json)
@@ -174,61 +249,93 @@ class StateManager:
         return self.data_dir / "subdomain_ratings.json"
 
     def get_subdomain_ratings(self) -> Dict[str, float]:
-        ratings = safe_read_json(self.ratings_file)
-        if ratings is None:
-            ratings = safe_read_json(self.ratings_alias_file, default={})
-        return ratings or {}
+        with self.ratings_lock():
+            ratings = safe_read_json(self.ratings_file)
+            if ratings is None:
+                ratings = safe_read_json(self.ratings_alias_file, default={})
+            return ratings or {}
 
     def update_subdomain_rating(self, topic_slug: str, new_rating: float) -> float:
         clean_slug = sanitize_identifier(topic_slug)
         clamped = round(max(1.0, min(5.0, float(new_rating))), 2)
 
-        ratings = self.get_subdomain_ratings()
-        ratings[clean_slug] = clamped
+        with self.ratings_lock():
+            ratings = safe_read_json(self.ratings_file)
+            if ratings is None:
+                ratings = safe_read_json(self.ratings_alias_file, default={})
+            ratings = ratings or {}
+            ratings[clean_slug] = clamped
 
-        atomic_write_json(self.ratings_file, ratings)
-        atomic_write_json(self.ratings_alias_file, ratings)
-        return clamped
+            atomic_write_json(self.ratings_file, ratings)
+            atomic_write_json(self.ratings_alias_file, ratings)
+            return clamped
 
     def set_subdomain_ratings(self, ratings: Dict[str, float]) -> None:
         clamped = {k: round(max(1.0, min(5.0, float(v))), 2) for k, v in ratings.items()}
-        atomic_write_json(self.ratings_file, clamped)
-        atomic_write_json(self.ratings_alias_file, clamped)
+        with self.ratings_lock():
+            atomic_write_json(self.ratings_file, clamped)
+            atomic_write_json(self.ratings_alias_file, clamped)
 
     # -------------------------------------------------------------------------
     # Sessions & Interview Transcripts
     # -------------------------------------------------------------------------
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         clean_id = sanitize_identifier(session_id)
-        session_path = self.data_dir / "sessions" / f"{clean_id}.json"
-        data = safe_read_json(session_path)
-        if data is None:
-            alias_path = self.data_dir / "interviews" / "transcripts" / f"{clean_id}.json"
-            data = safe_read_json(alias_path)
-        return data
+        with self.session_lock(clean_id):
+            session_path = self.data_dir / "sessions" / f"{clean_id}.json"
+            data = safe_read_json(session_path)
+            if data is None:
+                alias_path = self.data_dir / "interviews" / "transcripts" / f"{clean_id}.json"
+                data = safe_read_json(alias_path)
+            return data
 
     def save_session(self, session_id: str, session_data: Dict[str, Any]) -> None:
         clean_id = sanitize_identifier(session_id)
-        primary = self.data_dir / "sessions" / f"{clean_id}.json"
-        alias = self.data_dir / "interviews" / "transcripts" / f"{clean_id}.json"
-        atomic_write_json(primary, session_data)
-        atomic_write_json(alias, session_data)
+        with self.session_lock(clean_id):
+            primary = self.data_dir / "sessions" / f"{clean_id}.json"
+            alias = self.data_dir / "interviews" / "transcripts" / f"{clean_id}.json"
+            atomic_write_json(primary, session_data)
+            atomic_write_json(alias, session_data)
 
     def get_scorecard(self, session_id: str) -> Optional[Dict[str, Any]]:
         clean_id = sanitize_identifier(session_id)
-        card_path = self.data_dir / "sessions" / f"{clean_id}_scorecard.json"
-        data = safe_read_json(card_path)
-        if data is None:
-            alias_path = self.data_dir / "interviews" / "scorecards" / f"{clean_id}_scorecard.json"
-            data = safe_read_json(alias_path)
-        return data
+        with self.scorecard_lock(clean_id):
+            card_path = self.data_dir / "sessions" / f"{clean_id}_scorecard.json"
+            data = safe_read_json(card_path)
+            if data is None:
+                alias_path = self.data_dir / "interviews" / "scorecards" / f"{clean_id}_scorecard.json"
+                data = safe_read_json(alias_path)
+            return data
 
     def save_scorecard(self, session_id: str, scorecard_data: Dict[str, Any]) -> None:
         clean_id = sanitize_identifier(session_id)
-        primary = self.data_dir / "sessions" / f"{clean_id}_scorecard.json"
-        alias = self.data_dir / "interviews" / "scorecards" / f"{clean_id}_scorecard.json"
-        atomic_write_json(primary, scorecard_data)
-        atomic_write_json(alias, scorecard_data)
+        with self.scorecard_lock(clean_id):
+            primary = self.data_dir / "sessions" / f"{clean_id}_scorecard.json"
+            alias = self.data_dir / "interviews" / "scorecards" / f"{clean_id}_scorecard.json"
+            atomic_write_json(primary, scorecard_data)
+            atomic_write_json(alias, scorecard_data)
+
+    def save_session_turn(
+        self,
+        session_id: str,
+        turn_entry: Dict[str, Any],
+        history_key: str = "dialogue",
+        additional_updates: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Atomically append a turn entry to a session and persist under session_lock."""
+        clean_id = sanitize_identifier(session_id)
+        with self.session_lock(clean_id):
+            session_state = self.get_session(clean_id)
+            if not session_state:
+                raise KeyError(f"Session '{clean_id}' not found.")
+            session_state.setdefault(history_key, []).append(turn_entry)
+            if history_key == "dialogue":
+                session_state.setdefault("turns", []).append(turn_entry)
+            if additional_updates:
+                session_state.update(additional_updates)
+            self.save_session(clean_id, session_state)
+            return session_state
+
 
     def log_exercise_turn(self, turn_record: Dict[str, Any]) -> None:
         """Append turn record to sessions/exercises.jsonl."""

@@ -888,3 +888,76 @@ dialog.app-modal::backdrop {
     padding: var(--space-md);
   }
 }
+
+/* ==========================================================================
+   Micro-Syntax Highlighting & WebSocket Streaming Indicators
+   ========================================================================== */
+.tok-keyword {
+  color: var(--syntax-keyword);
+  font-weight: 600;
+}
+.tok-string {
+  color: var(--syntax-string);
+}
+.tok-number {
+  color: var(--syntax-number);
+}
+.tok-comment {
+  color: var(--syntax-comment);
+  font-style: italic;
+}
+.tok-type {
+  color: var(--syntax-type);
+  font-weight: 500;
+}
+.tok-function {
+  color: var(--syntax-function);
+}
+.tok-punct, .tok-operator {
+  color: var(--syntax-operator);
+}
+.tok-key {
+  color: var(--syntax-keyword);
+  font-weight: 600;
+}
+
+.inline-code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 2px 5px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  color: var(--accent-text);
+}
+
+.code-pre pre, .code-pre code {
+  font-family: var(--font-mono);
+}
+
+/* Streaming Typing Cursor */
+.typing-cursor {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  margin-left: 2px;
+  background-color: var(--accent-primary);
+  vertical-align: middle;
+  animation: cursor-blink 0.8s infinite alternate;
+}
+
+@keyframes cursor-blink {
+  0% { opacity: 0.1; }
+  100% { opacity: 1.0; }
+}
+
+/* WebSocket Connection Indicator States */
+#interview-ws-status.ws-active {
+  color: var(--success-text);
+}
+#interview-ws-status.ws-connecting {
+  color: var(--warning-text);
+}
+#interview-ws-status.ws-fallback {
+  color: var(--text-muted);
+}
