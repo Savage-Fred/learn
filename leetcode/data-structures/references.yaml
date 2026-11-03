@@ -3,12 +3,14 @@
   authors:
   - Maurice Herlihy
   - Nir Shavit
+  - Victor Luchangco
+  - Michael Spear
   year: 2020
   type: book
   canonical_url: https://www.sciencedirect.com/book/9780124159501/the-art-of-multiprocessor-programming
   citation_bibtex: "@book{herlihy2020art,\n  title={The Art of Multiprocessor Programming},\n\
-    \  author={Herlihy, Maurice and Shavit, Nir},\n  year={2020},\n  edition={2nd},\n\
-    \  publisher={Morgan Kaufmann}\n}"
+    \  author={Herlihy, Maurice and Shavit, Nir and Luchangco, Victor and Spear, Michael},\n\
+    \  year={2020},\n  edition={2nd},\n  publisher={Morgan Kaufmann}\n}"
   key_invariants:
   - Lock-free Michael-Scott queues maintain consistency via cooperative CAS advancement.
   - ABA mitigation requires hazard pointers or epoch-based reclamation.

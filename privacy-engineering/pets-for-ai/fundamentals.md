@@ -51,7 +51,9 @@ class SecAggClient:
         self.private_key = private_key # sk_i
         self.public_keys: Dict[int, int] = {}
         # Prime modulus and generator for modular Diffie-Hellman
-        self.p = 2147483647 # Mersenne prime 2^31 - 1
+        # Pedagogical Note: Prime p = 2147483647 (2^31 - 1) is chosen solely for compact illustrative execution.
+        # Production systems MUST use standard 2048/3072-bit MODP groups (RFC 3526) or Curve25519 (X25519).
+        self.p = 2147483647
         self.g = 7
         self.public_key = pow(self.g, self.private_key, self.p)
 
@@ -82,7 +84,7 @@ class SecAggServer:
         # Summing all masked vectors cancels all pairwise DH masks identically
         return np.sum(masked_vectors, axis=0)
 ```
-**Analysis**: Demonstrates the core algebraic zero-sum invariant of Secure Aggregation using Diffie-Hellman shared secrets for genuine confidentiality.
+**Analysis**: Demonstrates the core algebraic zero-sum invariant of Secure Aggregation using modular Diffie-Hellman shared secrets (with pedagogical parameters; production systems require RFC 3526 MODP or X25519).
 
 ---
 

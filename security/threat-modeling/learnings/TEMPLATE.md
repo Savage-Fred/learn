@@ -4,7 +4,7 @@ topic: threat-modeling
 domain: security
 title: "Systems, Cloud & AI Threat Modeling: Key Invariant Breakthrough"
 date: "2026-11-03T00:00:00Z"
-target_roles: ['Track 3', 'Track 1']
+target_roles: ['Track 3', 'Track 2', 'Track 1']
 target_level: "L5"
 source_trigger: "on_demand_deep_dive" # options: on_demand_deep_dive | rabbit-hole | mock_interview | exercise_solution
 invariants_covered:

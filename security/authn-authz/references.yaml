@@ -2,25 +2,31 @@
   title: "Zanzibar: Google\u2019s Consistent, Global Authorization System"
   authors:
   - Ruoming Pang
-  - "Ram\xF3n C\xE1ceres"
+  - Ramon Caceres
   - Mike Burrows
-  - Alex Chen
-  - Pratik Fimat
-  - Carl A. Waldspurger
-  - Kevin Goff
-  - Sanjeev Kumar
+  - Zhifeng Chen
+  - Pratik Dave
+  - Nathan Germer
+  - Alexander Golynski
+  - Kevin Graney
+  - Nina Kang
+  - Lea Kissner
+  - Jeffrey L. Korn
   - Abhishek Parmar
-  - Victor Sandberg
-  - Sneha Trivedi
+  - Christina D. Richards
+  - Mengzhi Wang
   year: 2019
   type: paper
   canonical_url: https://www.usenix.org/conference/atc19/presentation/pang
-  citation_bibtex: "@inproceedings{pang2019zanzibar,\n  title={Zanzibar: Google's\
-    \ Consistent, Global Authorization System},\n  author={Pang, Ruoming and C{\\\
-    'a}ceres, Ram{\\'o}n and Burrows, Mike and Chen, Alex and Fimat, Pratik and Waldspurger,\
-    \ Carl A and Goff, Kevin and Kumar, Sanjeev and Parmar, Abhishek and Sandberg,\
-    \ Victor and Trivedi, Sneha},\n  booktitle={USENIX Annual Technical Conference\
-    \ (ATC 19)},\n  pages={33--46},\n  year={2019}\n}"
+  citation_bibtex: "@inproceedings {234962,\n\tauthor = {Ruoming Pang and Ramon Caceres\
+    \ and Mike Burrows and Zhifeng Chen and Pratik Dave and Nathan Germer and Alexander\
+    \ Golynski and Kevin Graney and Nina Kang and Lea Kissner and Jeffrey L. Korn\
+    \ and Abhishek Parmar and Christina D. Richards and Mengzhi Wang},\n\ttitle =\
+    \ {Zanzibar: {Google{\\textquoteright}s} Consistent, Global Authorization System},\n\
+    \tbooktitle = {2019 USENIX Annual Technical Conference (USENIX ATC 19)},\n\tyear\
+    \ = {2019},\n\tisbn = {978-1-939133-03-8},\n\taddress = {Renton, WA},\n\tpages\
+    \ = {33--46},\n\turl = {https://www.usenix.org/conference/atc19/presentation/pang},\n\
+    \tpublisher = {USENIX Association},\n\tmonth = jul\n}"
   key_invariants:
   - External consistency eliminates the New-Enemy problem using Spanner timestamps
     and Zookies.

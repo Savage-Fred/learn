@@ -34,4 +34,4 @@ related_topics: ['security/fundamentals']
 - **L6 Expectation**: [System-wide architectural reframing, cross-domain security/resilience posture.]
 
 # References & Primary Sources
-- [The Confused Deputy: (or why capabilities might have been invented)](https://dl.acm.org/doi/10.1145/54289.848243)
+- [The Confused Deputy: (or why capabilities might have been invented)](https://dl.acm.org/doi/10.1145/54289.871709)

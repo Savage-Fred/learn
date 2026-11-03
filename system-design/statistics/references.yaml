@@ -41,7 +41,7 @@
   canonical_url: https://dl.acm.org/doi/10.1145/2433396.2433413
   citation_bibtex: "@inproceedings{deng2013improving,\n  title={Improving the Sensitivity\
     \ of Online Controlled Experiments by Utilizing Pre-Experiment Data},\n  author={Deng,\
-    \ Alex and Xu, Ya and Kohavi, Ron and Walker, Toby},\n  booktitle={WSDM},\n  pages={445--454},\n\
+    \ Alex and Xu, Ya and Kohavi, Ron and Walker, Toby},\n  booktitle={WSDM},\n  pages={123--132},\n\
     \  year={2013}\n}"
   key_invariants:
   - CUPED variance reduction factor is strictly 1 - rho^2.

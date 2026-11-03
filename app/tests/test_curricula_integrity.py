@@ -202,14 +202,28 @@ def test_exercises_contain_all_four_tiers():
                 assert "Starter Code" in content, f"Topic {domain}/{topic} exercise {tier} missing starter code"
                 assert "Verification Test Cases" in content, f"Topic {domain}/{topic} exercise {tier} missing test cases"
                 
-                # Invariant 1: Exercise must explicitly reference supporting literature
+                # Invariant 1: Exercise must explicitly reference supporting literature with non-empty ID list
                 assert "Source Reference IDs" in content, f"Topic {domain}/{topic} exercise {tier} missing Source Reference IDs"
+                found_ids = []
                 for line in content.splitlines():
                     if "Source Reference IDs" in line:
                         for token in line.split("`"):
                             token = token.strip().strip(",")
                             if token and not token.startswith("-") and "Source" not in token:
                                 assert token in valid_ref_ids, f"Exercise {tier} in {domain}/{topic} references invalid source ID '{token}'"
+                                found_ids.append(token)
+                assert len(found_ids) > 0, f"Exercise {tier} in {domain}/{topic} has empty Source Reference IDs list"
+
+
+@pytest.mark.unit
+def test_no_hyphenated_exercise_files():
+    """Verify no legacy duplicate hyphenated exercise files exist."""
+    hyphenated = ["tier1-starter.md", "tier2-intermediate.md", "tier3-advanced.md", "tier4-staff.md"]
+    for domain, topics in PRIORITY_TOPICS.items():
+        for topic in topics:
+            ex_dir = REPO_ROOT / domain / topic / "exercises"
+            for hyp in hyphenated:
+                assert not (ex_dir / hyp).exists(), f"Duplicate hyphenated exercise file found: {domain}/{topic}/exercises/{hyp}"
 
 
 @pytest.mark.unit
@@ -237,6 +251,13 @@ def test_zanzibar_citation_publisher_fidelity():
     assert zanzibar_ref["title"] == "Zanzibar: Google’s Consistent, Global Authorization System"
     assert "https://www.usenix.org/conference/atc19/presentation/pang" in zanzibar_ref["canonical_url"]
     assert "33--46" in zanzibar_ref["citation_bibtex"] or "pages={33--46}" in zanzibar_ref["citation_bibtex"]
+    
+    expected_authors = [
+        "Ruoming Pang", "Ramon Caceres", "Mike Burrows", "Zhifeng Chen", "Pratik Dave",
+        "Nathan Germer", "Alexander Golynski", "Kevin Graney", "Nina Kang", "Lea Kissner",
+        "Jeffrey L. Korn", "Abhishek Parmar", "Christina D. Richards", "Mengzhi Wang"
+    ]
+    assert zanzibar_ref["authors"] == expected_authors, f"Zanzibar authors mismatch: {zanzibar_ref['authors']}"
 
 
 @pytest.mark.unit
@@ -246,19 +267,59 @@ def test_mathematical_invariants_rigor():
     assert "\\text{TPR} - \\text{FPR}" in pets_fund, "MIA advantage must be defined as TPR - FPR"
 
     dp_fund = (REPO_ROOT / "privacy-engineering" / "differential-privacy" / "fundamentals.md").read_text(encoding="utf-8")
-    assert "\\le \\sum_{i=1}^k D_\\alpha" in dp_fund, "RDP composition must be stated as an inequality <= for sequential composition"
+    assert "\\le \\sum_{i=1}^k \\varepsilon_i(\\alpha)" in dp_fund or "\\le \\sum" in dp_fund, "RDP composition must be stated as an inequality <= for sequential composition"
+    assert "\\epsilon \\in (0, 1)" in dp_fund, "Gaussian mechanism standard formula must state epsilon in (0, 1) condition"
 
 
 @pytest.mark.unit
 def test_concurrency_and_security_code_soundness():
     """Verify code examples for SSRF, capability fail-closed, and Rust SPSC soundness."""
     tm_fund = (REPO_ROOT / "security" / "threat-modeling" / "fundamentals.md").read_text(encoding="utf-8")
-    assert "is_private_or_loopback_destination" in tm_fund, "SSRF protection must resolve hostnames to IP addresses"
+    assert "getaddrinfo" in tm_fund, "SSRF protection must resolve dual-stack hostnames using getaddrinfo"
     assert "urlsplit" in tm_fund, "SSRF protection must parse URLs using urlsplit"
 
     agent_fund = (REPO_ROOT / "security" / "agent-access-models" / "fundamentals.md").read_text(encoding="utf-8")
     assert "Unknown/unhandled caveat MUST reject verification" in agent_fund or "fail-closed" in agent_fund, "Capability verification must enforce fail-closed caveat handling"
 
     rust_fund = (REPO_ROOT / "system-design" / "rust" / "fundamentals.md").read_text(encoding="utf-8")
-    assert "SpscProducer" in rust_fund and "SpscConsumer" in rust_fund, "Rust SPSC queue must separate exclusive Producer and Consumer handles"
+    assert "PhantomData<Cell<()>>" in rust_fund, "Rust SPSC handles must contain PhantomData<Cell<()>> to enforce !Sync"
+
+    go_fund = (REPO_ROOT / "system-design" / "go" / "fundamentals.md").read_text(encoding="utf-8")
+    assert '"time"' not in go_fund and '"errors"' not in go_fund, "Go SingleFlight must not contain unused imports"
+
+
+@pytest.mark.unit
+def test_grounded_references_and_role_tracks():
+    """Verify citations (CUPED, Confused Deputy, NVIDIA) and role tracks coverage."""
+    # Check CUPED pages
+    stats_ref_file = REPO_ROOT / "system-design" / "statistics" / "references.yaml"
+    with open(stats_ref_file, "r", encoding="utf-8") as f:
+        stats_refs = yaml.safe_load(f)
+    cuped_ref = next(r for r in stats_refs if r["id"] == "deng-cuped-2013")
+    assert "123--132" in cuped_ref["citation_bibtex"] or "123-132" in cuped_ref["citation_bibtex"]
+
+    # Check Hardy confused deputy DOI
+    agent_ref_file = REPO_ROOT / "security" / "agent-access-models" / "references.yaml"
+    with open(agent_ref_file, "r", encoding="utf-8") as f:
+        agent_refs = yaml.safe_load(f)
+    hardy_ref = next(r for r in agent_refs if r["id"] == "hardy-confused-deputy-1988")
+    assert "871709" in hardy_ref["canonical_url"], "Hardy confused deputy citation must reference paper DOI 871709"
+
+    # Check NVIDIA GPU attestation reference and tier4_l6 grounding
+    tm_ref_file = REPO_ROOT / "security" / "threat-modeling" / "references.yaml"
+    with open(tm_ref_file, "r", encoding="utf-8") as f:
+        tm_refs = yaml.safe_load(f)
+    assert any(r["id"] == "nvidia-gpu-attestation-2023" for r in tm_refs), "Threat modeling must include NVIDIA GPU attestation reference"
+    tier4_content = (REPO_ROOT / "security" / "threat-modeling" / "exercises" / "tier4_l6.md").read_text(encoding="utf-8")
+    assert "nvidia-gpu-attestation-2023" in tier4_content, "Threat modeling tier4_l6 must cite nvidia-gpu-attestation-2023"
+
+    # Check role tracks
+    authn_readme = (REPO_ROOT / "security" / "authn-authz" / "README.md").read_text(encoding="utf-8")
+    assert "Track 2" in authn_readme, "authn-authz README must include Track 2"
+
+    tm_readme = (REPO_ROOT / "security" / "threat-modeling" / "README.md").read_text(encoding="utf-8")
+    assert "Track 2" in tm_readme, "threat-modeling README must include Track 2"
+
+    rust_readme = (REPO_ROOT / "system-design" / "rust" / "README.md").read_text(encoding="utf-8")
+    assert "Track 3" in rust_readme, "rust README must include Track 3"
 

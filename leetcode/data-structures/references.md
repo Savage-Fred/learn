@@ -5,7 +5,7 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
 ## Citable Bibliography
 
 ### The Art of Multiprocessor Programming (2020)
-- **Authors**: Maurice Herlihy, Nir Shavit
+- **Authors**: Maurice Herlihy, Nir Shavit, Victor Luchangco, Michael Spear
 - **Type**: `book`
 - **Canonical URL / DOI**: [https://www.sciencedirect.com/book/9780124159501/the-art-of-multiprocessor-programming](https://www.sciencedirect.com/book/9780124159501/the-art-of-multiprocessor-programming)
 - **Role Relevance**: Track-1-SWE, Track-4-Research-Eng
@@ -23,7 +23,7 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
 ```bibtex
 @book{herlihy2020art,
   title={The Art of Multiprocessor Programming},
-  author={Herlihy, Maurice and Shavit, Nir},
+  author={Herlihy, Maurice and Shavit, Nir and Luchangco, Victor and Spear, Michael},
   year={2020},
   edition={2nd},
   publisher={Morgan Kaufmann}

@@ -49,3 +49,33 @@
     - Identifies indirect prompt injection via untrusted pull request comments or
       READMEs
     - Specifies microVM or gVisor sandbox with network egress restrictions
+- id: nvidia-gpu-attestation-2023
+  title: 'NVIDIA Confidential Computing on Hopper Architecture: Deployment and Remote
+    Attestation Guide'
+  authors:
+  - NVIDIA Corporation
+  year: 2023
+  type: tech_blog
+  canonical_url: https://docs.nvidia.com/confidential-computing/virtual-machines/deployment-guide/attest/
+  citation_bibtex: "@misc{nvidiaconfidential2023,\n  title={NVIDIA Confidential Computing\
+    \ on Hopper Architecture: Deployment and Remote Attestation Guide},\n  author={{NVIDIA\
+    \ Corporation}},\n  year={2023},\n  url={https://docs.nvidia.com/confidential-computing/virtual-machines/deployment-guide/attest/}\n\
+    }"
+  key_invariants:
+  - Cryptographic attestation verifies GPU hardware state and firmware measurements
+    before sensitive weights are transferred.
+  - Hardware-isolated protected memory encryption (CPR) prevents host hypervisor or
+    co-tenant memory inspection.
+  role_relevance:
+  - Track-3-Security
+  - Track-2-Privacy
+  - Track-1-SWE
+  interview_calibration:
+    company: OpenAI
+    level: L6
+    round_type: Confidential AI & Infrastructure Security
+    prompt_summary: Architect the threat model and attestation verification protocol
+      for executing proprietary LLM weights inside multi-tenant GPU cloud environments.
+    expected_signals:
+    - Specifies hardware root of trust and SPDM attestation exchanges
+    - Addresses physical bus sniffing and memory DMA attacks

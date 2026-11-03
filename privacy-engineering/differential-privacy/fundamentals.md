@@ -14,15 +14,15 @@ $$
 
 ### Invariant 2: Gaussian Mechanism Parameterization Invariant
 $$
-\mathcal{M}(D) = f(D) + \mathcal{N}(0, \sigma^2 I), \quad \sigma \ge \frac{\Delta_2 f \sqrt{2 \ln(1.25 / \delta)}}{\epsilon} \implies (\epsilon, \delta)\text{-DP}.
+\mathcal{M}(D) = f(D) + \mathcal{N}(0, \sigma^2 I), \quad \sigma \ge \frac{\Delta_2 f \sqrt{2 \ln(1.25 / \delta)}}{\epsilon} \implies (\epsilon, \delta)\text{-DP} \quad \text{for } \epsilon \in (0, 1).
 $$
-**Implications & Guarantees**: L2 sensitivity governs Gaussian noise calibration, enabling tighter composition than Laplace noise under vector-valued outputs.
+**Implications & Guarantees**: L2 sensitivity governs Gaussian noise calibration under the classical analytic bound strictly for ε in (0, 1). For ε >= 1, standard numerical calibration (e.g. Balle & Wang 2018 optimal Gaussian mechanism) or advanced analytical calibration must be used to prevent under-noising and guarantee the target δ bound.
 
 ### Invariant 3: Rényi Differential Privacy (RDP) Adaptive Sequential Composition
 $$
-\forall \alpha > 1, \quad D_\alpha(\mathcal{M}_{1:k}(D) \parallel \mathcal{M}_{1:k}(D')) \le \sum_{i=1}^k D_\alpha(\mathcal{M}_i(D) \parallel \mathcal{M}_i(D')).
+\forall \alpha > 1, \quad D_\alpha(\mathcal{M}_{1:k}(D) \parallel \mathcal{M}_{1:k}(D')) \le \sum_{i=1}^k \varepsilon_i(\alpha), \quad \text{where } \sup_{a_{1:i-1}} D_\alpha(\mathcal{M}_i(D, a_{1:i-1}) \parallel \mathcal{M}_i(D', a_{1:i-1})) \le \varepsilon_i(\alpha).
 $$
-**Implications & Guarantees**: Under adaptive sequential composition, Rényi divergence upper bounds compose linearly across thousands of training steps, achieving tight Gaussian tail bounds when converted to (ε, δ)-DP (Mironov 2017, Proposition 1).
+**Implications & Guarantees**: Under adaptive sequential composition, if each mechanism M_i satisfies (α, ε_i(α))-RDP uniformly across all possible prior conditioning histories a_{1:i-1}, the overall privacy budget composes by summing individual per-step Rényi divergence bounds (Mironov 2017, Proposition 1).
 
 ---
 

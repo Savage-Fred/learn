@@ -51,7 +51,7 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
   title={Improving the Sensitivity of Online Controlled Experiments by Utilizing Pre-Experiment Data},
   author={Deng, Alex and Xu, Ya and Kohavi, Ron and Walker, Toby},
   booktitle={WSDM},
-  pages={445--454},
+  pages={123--132},
   year={2013}
 }
 ```

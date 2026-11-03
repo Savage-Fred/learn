@@ -42,7 +42,8 @@ Rust futures are lazy state machines that do nothing until polled by an executor
 ```rust
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
-use std::cell::UnsafeCell;
+use std::cell::{UnsafeCell, Cell};
+use std::marker::PhantomData;
 
 struct SpscRingBuffer<T, const CAP: usize> {
     buffer: [UnsafeCell<Option<T>>; CAP],
@@ -57,13 +58,15 @@ unsafe impl<T: Send, const CAP: usize> Sync for SpscRingBuffer<T, CAP> {}
 
 pub struct SpscProducer<T: Send, const CAP: usize> {
     buffer: Arc<SpscRingBuffer<T, CAP>>,
+    _marker: PhantomData<Cell<()>>, // Cell is !Sync, ensuring SpscProducer is strictly !Sync
 }
 
 pub struct SpscConsumer<T: Send, const CAP: usize> {
     buffer: Arc<SpscRingBuffer<T, CAP>>,
+    _marker: PhantomData<Cell<()>>, // Cell is !Sync, ensuring SpscConsumer is strictly !Sync
 }
 
-// Neither Producer nor Consumer implements Sync; they cannot be called concurrently from multiple threads
+// Neither Producer nor Consumer implements Sync; they cannot be shared concurrently across threads
 impl<T: Send, const CAP: usize> SpscProducer<T, CAP> {
     pub fn push(&mut self, item: T) -> Result<(), T> {
         let tail = self.buffer.tail.load(Ordering::Relaxed);
@@ -109,7 +112,17 @@ pub fn make_spsc<T: Send, const CAP: usize>() -> (SpscProducer<T, CAP>, SpscCons
         head: AtomicUsize::new(0),
         tail: AtomicUsize::new(0),
     });
-    (SpscProducer { buffer: buf.clone() }, SpscConsumer { buffer: buf })
+    (
+        SpscProducer { buffer: buf.clone(), _marker: PhantomData },
+        SpscConsumer { buffer: buf, _marker: PhantomData },
+    )
+}
+
+// Compile-time assertion verifying Send (movable across threads) without Sync (shareable across threads)
+fn assert_send<T: Send>() {}
+fn verify_soundness<T: Send, const CAP: usize>() {
+    assert_send::<SpscProducer<T, CAP>>();
+    assert_send::<SpscConsumer<T, CAP>>();
 }
 ```
 **Analysis**: Demonstrates sound lock-free SPSC queue splitting into exclusive non-Sync Producer and Consumer handles, using Acquire/Release atomic ordering.

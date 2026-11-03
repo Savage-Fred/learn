@@ -53,3 +53,28 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
   url={https://owasp.org/www-project-top-10-for-large-language-model-applications/}
 }
 ```
+
+### NVIDIA Confidential Computing on Hopper Architecture: Deployment and Remote Attestation Guide (2023)
+- **Authors**: NVIDIA Corporation
+- **Type**: `tech_blog`
+- **Canonical URL / DOI**: [https://docs.nvidia.com/confidential-computing/virtual-machines/deployment-guide/attest/](https://docs.nvidia.com/confidential-computing/virtual-machines/deployment-guide/attest/)
+- **Role Relevance**: Track-3-Security, Track-2-Privacy, Track-1-SWE
+- **Core Invariants Extracted**:
+  - Cryptographic attestation verifies GPU hardware state and firmware measurements before sensitive weights are transferred.
+  - Hardware-isolated protected memory encryption (CPR) prevents host hypervisor or co-tenant memory inspection.
+- **Interview Loop Calibration**:
+  - *Target Company & Level*: OpenAI (L6)
+  - *Round*: Confidential AI & Infrastructure Security
+  - *Prompt Summary*: Architect the threat model and attestation verification protocol for executing proprietary LLM weights inside multi-tenant GPU cloud environments.
+  - *Expected Evaluation Signals*:
+    - Specifies hardware root of trust and SPDM attestation exchanges
+    - Addresses physical bus sniffing and memory DMA attacks
+
+```bibtex
+@misc{nvidiaconfidential2023,
+  title={NVIDIA Confidential Computing on Hopper Architecture: Deployment and Remote Attestation Guide},
+  author={{NVIDIA Corporation}},
+  year={2023},
+  url={https://docs.nvidia.com/confidential-computing/virtual-machines/deployment-guide/attest/}
+}
+```

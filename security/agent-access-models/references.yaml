@@ -4,7 +4,7 @@
   - Norm Hardy
   year: 1988
   type: paper
-  canonical_url: https://dl.acm.org/doi/10.1145/54289.848243
+  canonical_url: https://dl.acm.org/doi/10.1145/54289.871709
   citation_bibtex: "@article{hardy1988confused,\n  title={The Confused Deputy: (or\
     \ why capabilities might have been invented)},\n  author={Hardy, Norm},\n  journal={ACM\
     \ SIGOPS Operating Systems Review},\n  volume={22},\n  number={4},\n  pages={36--38},\n\
@@ -31,14 +31,16 @@
   title: 'RFC 8693: OAuth 2.0 Token Exchange'
   authors:
   - Michael B. Jones
+  - Anthony Nadalin
   - Brian Campbell
+  - John Bradley
   - Chuck Mortimore
   year: 2020
   type: rfc
   canonical_url: https://datatracker.ietf.org/doc/html/rfc8693
   citation_bibtex: "@misc{rfc8693,\n  title={OAuth 2.0 Token Exchange},\n  author={Jones,\
-    \ Michael B and Campbell, Brian and Mortimore, Chuck},\n  year={2020},\n  publisher={IETF\
-    \ RFC 8693}\n}"
+    \ Michael B and Nadalin, Anthony and Campbell, Brian and Bradley, John and Mortimore,\
+    \ Chuck},\n  year={2020},\n  publisher={IETF RFC 8693}\n}"
   key_invariants:
   - Allows clients to exchange an existing security token for a new token with attenuated
     scope.

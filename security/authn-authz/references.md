@@ -5,7 +5,7 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
 ## Citable Bibliography
 
 ### Zanzibar: Google’s Consistent, Global Authorization System (2019)
-- **Authors**: Ruoming Pang, Ramón Cáceres, Mike Burrows, Alex Chen, Pratik Fimat, Carl A. Waldspurger, Kevin Goff, Sanjeev Kumar, Abhishek Parmar, Victor Sandberg, Sneha Trivedi
+- **Authors**: Ruoming Pang, Ramon Caceres, Mike Burrows, Zhifeng Chen, Pratik Dave, Nathan Germer, Alexander Golynski, Kevin Graney, Nina Kang, Lea Kissner, Jeffrey L. Korn, Abhishek Parmar, Christina D. Richards, Mengzhi Wang
 - **Type**: `paper`
 - **Canonical URL / DOI**: [https://www.usenix.org/conference/atc19/presentation/pang](https://www.usenix.org/conference/atc19/presentation/pang)
 - **Role Relevance**: Track-3-Security, Track-1-SWE
@@ -22,12 +22,17 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
     - Designs hierarchical caching and graph cycle detection
 
 ```bibtex
-@inproceedings{pang2019zanzibar,
-  title={Zanzibar: Google's Consistent, Global Authorization System},
-  author={Pang, Ruoming and C{\'a}ceres, Ram{\'o}n and Burrows, Mike and Chen, Alex and Fimat, Pratik and Waldspurger, Carl A and Goff, Kevin and Kumar, Sanjeev and Parmar, Abhishek and Sandberg, Victor and Trivedi, Sneha},
-  booktitle={USENIX Annual Technical Conference (ATC 19)},
-  pages={33--46},
-  year={2019}
+@inproceedings {234962,
+	author = {Ruoming Pang and Ramon Caceres and Mike Burrows and Zhifeng Chen and Pratik Dave and Nathan Germer and Alexander Golynski and Kevin Graney and Nina Kang and Lea Kissner and Jeffrey L. Korn and Abhishek Parmar and Christina D. Richards and Mengzhi Wang},
+	title = {Zanzibar: {Google{\textquoteright}s} Consistent, Global Authorization System},
+	booktitle = {2019 USENIX Annual Technical Conference (USENIX ATC 19)},
+	year = {2019},
+	isbn = {978-1-939133-03-8},
+	address = {Renton, WA},
+	pages = {33--46},
+	url = {https://www.usenix.org/conference/atc19/presentation/pang},
+	publisher = {USENIX Association},
+	month = jul
 }
 ```
 

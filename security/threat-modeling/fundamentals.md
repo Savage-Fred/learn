@@ -54,20 +54,31 @@ class SecureToolProxy:
         self.human_approval = human_approval_callback
 
     def is_private_or_loopback_destination(self, hostname: str) -> bool:
-        """Resolves hostname and checks against private, loopback, and link-local ranges."""
+        """Resolves dual-stack IPv4/IPv6 hostname and checks against restricted ranges.
+
+        Enforces fail-closed resolution. Note: To eliminate DNS rebinding (TOCTOU)
+        gaps, the HTTP client must connect directly to the validated IP address rather
+        than re-resolving the hostname on connect, and must re-validate HTTP redirects.
+        """
         try:
-            # Check if hostname is direct IP literal
+            # Check if hostname is direct IP literal (IPv4 or IPv6)
             try:
                 ip = ipaddress.ip_address(hostname)
-                return ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved
+                return (ip.is_private or ip.is_loopback or ip.is_link_local or 
+                        ip.is_multicast or ip.is_reserved or ip.is_unspecified)
             except ValueError:
                 pass
 
-            # Resolve hostname to all associated IPs to prevent DNS rebinding
-            _, _, ips = socket.gethostbyname_ex(hostname)
-            for ip_str in ips:
+            # Dual-stack resolution using getaddrinfo (checks both IPv4 and IPv6 records)
+            addr_info = socket.getaddrinfo(hostname, None, proto=socket.IPPROTO_TCP)
+            if not addr_info:
+                return True  # Fail-closed if no records returned
+
+            for _, _, _, _, sockaddr in addr_info:
+                ip_str = sockaddr[0]
                 ip = ipaddress.ip_address(ip_str)
-                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                if (ip.is_private or ip.is_loopback or ip.is_link_local or 
+                    ip.is_multicast or ip.is_reserved or ip.is_unspecified):
                     return True
         except (socket.gaierror, ValueError):
             return True  # Fail-closed on resolution failure

@@ -31,6 +31,9 @@ Deep systems engineering in Rust covering memory safety invariants (ownership, b
 ### Track 1: FAANG SWE + AI Lab SWE (L5/L6)
 - **Focus & Competencies**: High-throughput network proxies, zero-copy buffer management, lock-free queues, and low-latency storage engines.
 
+### Track 3: FAANG + AI Labs Security Engineer (L5-L6)
+- **Focus & Competencies**: Memory-safe systems programming, lock-free concurrency, kernel and hypervisor security, and zero-overhead cryptographic abstractions.
+
 ### Track 4: AI Lab Research Engineer (non-PhD) (L4/L5)
 - **Focus & Competencies**: GPU inference serving harnesses, custom PyO3 tensor bindings, and zero-allocation critical loops.
 
@@ -92,7 +95,7 @@ Deep systems engineering in Rust covering memory safety invariants (ownership, b
 ## Standard 5-Artifact Topic Layout
 
 1. **[Fundamentals](./fundamentals.md)**: Core axiomatic invariants, theoretical proofs, mental models, idiomatic code examples, architectural tradeoffs, and failure modes.
-2. **[References (YAML)](./references.yaml)** & **[References (Markdown)](./references.md)**: Citable peer-reviewed papers (with DOIs/arXiv IDs), official RFCs, foundational textbooks, and recent verified tier-1 interview loop calibrations.
+2. **[References (YAML)](./references.yaml)** & **[References (Markdown)](./references.md)**: Citable peer-reviewed literature (with DOIs/arXiv IDs), official standards/RFCs, foundational textbooks, and interview loop calibrations.
 3. **[Evaluation Rubric](./rubric.md)**: L4 vs L5 vs L6 scoring criteria across the 5 dimensions (Decomposition, Technical Execution, Architecture, Resilience, Communication) matching `docs/ux-spec.md`.
 4. **[Adaptive Exercises](./exercises/)**: Tiered problem sets spanning diagnostic starter, mid-level L4, senior L5, and staff L6.
 5. **[Durable Learnings](./learnings/)**: Destination directory for user's durable notes and deep-dive captures.

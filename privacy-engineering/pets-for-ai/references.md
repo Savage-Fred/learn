@@ -31,7 +31,7 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
 ```
 
 ### Extracting Training Data from Large Language Models (2021)
-- **Authors**: Nicholas Carlini, Florian Tramèr, Eric Wallace, Matthew Jagielski, Ariel Herbert-Voss
+- **Authors**: Nicholas Carlini, Florian Tramèr, Eric Wallace, Matthew Jagielski, Ariel Herbert-Voss, Katherine Lee, Adam Roberts, Tom Brown, Dawn Song, Úlfar Erlingsson, Alina Oprea
 - **Type**: `paper`
 - **Canonical URL / DOI**: [https://www.usenix.org/conference/usenixsecurity21/presentation/carlini-extracting](https://www.usenix.org/conference/usenixsecurity21/presentation/carlini-extracting)
 - **Role Relevance**: Track-2-Privacy, Track-4-Research-Eng
@@ -49,7 +49,7 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
 ```bibtex
 @inproceedings{carlini2021extracting,
   title={Extracting Training Data from Large Language Models},
-  author={Carlini, Nicholas and Tram{\`e}r, Florian and Wallace, Eric and Jagielski, Matthew and Herbert-Voss, Ariel and others},
+  author={Carlini, Nicholas and Tram{\`e}r, Florian and Wallace, Eric and Jagielski, Matthew and Herbert-Voss, Ariel and Lee, Katherine and Roberts, Adam and Brown, Tom and Song, Dawn and Erlingsson, {\'{U}}lfar and Oprea, Alina},
   booktitle={USENIX Security Symposium},
   pages={2633--2650},
   year={2021}
@@ -57,7 +57,7 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
 ```
 
 ### Practical Secure Aggregation for Privacy-Preserving Machine Learning (2017)
-- **Authors**: Keith Bonawitz, Vladimir Ivanov, Ben Kreuter, Antonio Marcedone
+- **Authors**: Keith Bonawitz, Vladimir Ivanov, Ben Kreuter, Antonio Marcedone, H. Brendan McMahan, Sarvar Patel, Daniel Ramage, Aaron Segal, Karn Seth
 - **Type**: `paper`
 - **Canonical URL / DOI**: [https://dl.acm.org/doi/10.1145/3133956.3133982](https://dl.acm.org/doi/10.1145/3133956.3133982)
 - **Role Relevance**: Track-2-Privacy, Track-4-Research-Eng
@@ -75,7 +75,7 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
 ```bibtex
 @inproceedings{bonawitz2017practical,
   title={Practical Secure Aggregation for Privacy-Preserving Machine Learning},
-  author={Bonawitz, Keith and Ivanov, Vladimir and Kreuter, Ben and Marcedone, Antonio and others},
+  author={Bonawitz, Keith and Ivanov, Vladimir and Kreuter, Ben and Marcedone, Antonio and McMahan, H. Brendan and Patel, Sarvar and Ramage, Daniel and Segal, Aaron and Seth, Karn},
   booktitle={ACM CCS},
   pages={1175--1191},
   year={2017}

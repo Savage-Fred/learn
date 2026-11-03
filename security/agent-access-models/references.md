@@ -7,7 +7,7 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
 ### The Confused Deputy: (or why capabilities might have been invented) (1988)
 - **Authors**: Norm Hardy
 - **Type**: `paper`
-- **Canonical URL / DOI**: [https://dl.acm.org/doi/10.1145/54289.848243](https://dl.acm.org/doi/10.1145/54289.848243)
+- **Canonical URL / DOI**: [https://dl.acm.org/doi/10.1145/54289.871709](https://dl.acm.org/doi/10.1145/54289.871709)
 - **Role Relevance**: Track-3-Security, Track-1-SWE
 - **Core Invariants Extracted**:
   - Ambient authority inevitably leads to the confused deputy vulnerability.
@@ -33,7 +33,7 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
 ```
 
 ### RFC 8693: OAuth 2.0 Token Exchange (2020)
-- **Authors**: Michael B. Jones, Brian Campbell, Chuck Mortimore
+- **Authors**: Michael B. Jones, Anthony Nadalin, Brian Campbell, John Bradley, Chuck Mortimore
 - **Type**: `rfc`
 - **Canonical URL / DOI**: [https://datatracker.ietf.org/doc/html/rfc8693](https://datatracker.ietf.org/doc/html/rfc8693)
 - **Role Relevance**: Track-3-Security, Track-1-SWE
@@ -51,7 +51,7 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
 ```bibtex
 @misc{rfc8693,
   title={OAuth 2.0 Token Exchange},
-  author={Jones, Michael B and Campbell, Brian and Mortimore, Chuck},
+  author={Jones, Michael B and Nadalin, Anthony and Campbell, Brian and Bradley, John and Mortimore, Chuck},
   year={2020},
   publisher={IETF RFC 8693}
 }

@@ -31,6 +31,9 @@ Comprehensive security architecture covering authentication vs authorization, cr
 ### Track 3: FAANG + AI Labs Security Engineer (L4-L6)
 - **Focus & Competencies**: Zero-trust identity federation, Zanzibar-scale authorization services, hardware token attestation, and cryptographically verified access control.
 
+### Track 2: FAANG Privacy Engineer + AI Labs (L5-L6)
+- **Focus & Competencies**: Data access governance, tenant boundary enforcement, and privacy-preserving authorization policies.
+
 ### Track 1: FAANG SWE + AI Lab SWE (L5/L6)
 - **Focus & Competencies**: Identity propagation across microservices, resilient token verification, and low-latency authorization caching.
 
@@ -46,7 +49,7 @@ Comprehensive security architecture covering authentication vs authorization, cr
   - Sub-millisecond latency evaluation
 
 ### Netflix
-- **Technical Focus**: Zero-trust distributed authorization, evaluating billions of RPC checks per second with sub-millisecond p99 latency across multiple AWS regions.
+- **Technical Focus**: Zero-trust distributed authorization, evaluating high-throughput RPC checks with sub-millisecond p99 latency across multiple cloud regions.
 - **Observable Evaluation Signals**:
   - Distributed caching of auth decisions
   - Stateless token validation
@@ -92,7 +95,7 @@ Comprehensive security architecture covering authentication vs authorization, cr
 ## Standard 5-Artifact Topic Layout
 
 1. **[Fundamentals](./fundamentals.md)**: Core axiomatic invariants, theoretical proofs, mental models, idiomatic code examples, architectural tradeoffs, and failure modes.
-2. **[References (YAML)](./references.yaml)** & **[References (Markdown)](./references.md)**: Citable peer-reviewed papers (with DOIs/arXiv IDs), official RFCs, foundational textbooks, and recent verified tier-1 interview loop calibrations.
+2. **[References (YAML)](./references.yaml)** & **[References (Markdown)](./references.md)**: Citable peer-reviewed literature (with DOIs/arXiv IDs), official standards/RFCs, foundational textbooks, and interview loop calibrations.
 3. **[Evaluation Rubric](./rubric.md)**: L4 vs L5 vs L6 scoring criteria across the 5 dimensions (Decomposition, Technical Execution, Architecture, Resilience, Communication) matching `docs/ux-spec.md`.
 4. **[Adaptive Exercises](./exercises/)**: Tiered problem sets spanning diagnostic starter, mid-level L4, senior L5, and staff L6.
 5. **[Durable Learnings](./learnings/)**: Destination directory for user's durable notes and deep-dive captures.

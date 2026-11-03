@@ -36,14 +36,21 @@
   - Eric Wallace
   - Matthew Jagielski
   - Ariel Herbert-Voss
+  - Katherine Lee
+  - Adam Roberts
+  - Tom Brown
+  - Dawn Song
+  - "\xDAlfar Erlingsson"
+  - Alina Oprea
   year: 2021
   type: paper
   canonical_url: https://www.usenix.org/conference/usenixsecurity21/presentation/carlini-extracting
   citation_bibtex: "@inproceedings{carlini2021extracting,\n  title={Extracting Training\
     \ Data from Large Language Models},\n  author={Carlini, Nicholas and Tram{\\`e}r,\
     \ Florian and Wallace, Eric and Jagielski, Matthew and Herbert-Voss, Ariel and\
-    \ others},\n  booktitle={USENIX Security Symposium},\n  pages={2633--2650},\n\
-    \  year={2021}\n}"
+    \ Lee, Katherine and Roberts, Adam and Brown, Tom and Song, Dawn and Erlingsson,\
+    \ {\\'{U}}lfar and Oprea, Alina},\n  booktitle={USENIX Security Symposium},\n\
+    \  pages={2633--2650},\n  year={2021}\n}"
   key_invariants:
   - LLMs memorize training data verbatim across large model scales.
   - Perplexity ratio comparisons between base and zlib-compressed text reveal memorized
@@ -67,12 +74,18 @@
   - Vladimir Ivanov
   - Ben Kreuter
   - Antonio Marcedone
+  - H. Brendan McMahan
+  - Sarvar Patel
+  - Daniel Ramage
+  - Aaron Segal
+  - Karn Seth
   year: 2017
   type: paper
   canonical_url: https://dl.acm.org/doi/10.1145/3133956.3133982
   citation_bibtex: "@inproceedings{bonawitz2017practical,\n  title={Practical Secure\
     \ Aggregation for Privacy-Preserving Machine Learning},\n  author={Bonawitz, Keith\
-    \ and Ivanov, Vladimir and Kreuter, Ben and Marcedone, Antonio and others},\n\
+    \ and Ivanov, Vladimir and Kreuter, Ben and Marcedone, Antonio and McMahan, H.\
+    \ Brendan and Patel, Sarvar and Ramage, Daniel and Segal, Aaron and Seth, Karn},\n\
     \  booktitle={ACM CCS},\n  pages={1175--1191},\n  year={2017}\n}"
   key_invariants:
   - Pairwise masking guarantees zero server visibility of individual client updates.
