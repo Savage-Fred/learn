@@ -27,7 +27,7 @@ async def platform_status():
         "status": "operational",
         "host": settings.host,
         "port": settings.port,
-        "tailnet_reachability": f"https://{settings.magic_dns}:{settings.port}",
+        "tailnet_reachability": f"http://{settings.magic_dns}:{settings.port}",
         "data_dir": str(settings.data_dir),
         "use_mock_llm": settings.use_mock_llm,
         "topics_available": [

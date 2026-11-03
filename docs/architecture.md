@@ -421,22 +421,96 @@ source_trigger: "on_demand_deep_dive"
 ...
 ```
 
-### 6.2 Out-of-Git Personal State Plane
+### 6.2 Grounded Data Retrieval & Question Curation Architecture (§R2)
+
+To satisfy Requirement §R2, all topic curricula, adaptive exercises, and mock interview problems are grounded in authentic, verified interview loops and authoritative academic/engineering sources. The platform rejects unanchored, synthetic problem prompts.
+
+```mermaid
+flowchart TD
+    subgraph Sources [Authoritative Source Corpus]
+        Papers[Academic Papers: arXiv, IEEE, ACM]
+        EngBlogs[Company Engineering Blogs: Netflix, Meta, OpenAI]
+        RFCs[Standards & Specifications: RFCs, IETF]
+        Loops[Verified Recent L4-L6 Interview Loops]
+    end
+
+    subgraph Pipeline [Ingestion & Curation Pipeline]
+        Ingest[Ingest & Normalize Content]
+        Verify[Verification & Attribution Filter]
+        Extract[Invariant & Mental Model Extractor]
+        Link[Question-to-Source Graph Linker]
+    end
+
+    subgraph RepoArtifacts [Curriculum Knowledge Base]
+        Refs[<domain>/<topic>/references.md]
+        Fund[<domain>/<topic>/fundamentals.md]
+        Exs[<domain>/<topic>/exercises/*.md]
+        Rubrics[<domain>/<topic>/rubric.md]
+    end
+
+    Sources --> Ingest --> Verify --> Extract --> Link
+    Extract --> Fund
+    Extract --> Rubrics
+    Link --> Refs
+    Link --> Exs
+```
+
+#### 6.2.1 Source Provenance Contract (`references.md`)
+Every entry in a topic's `references.md` adheres to a strict machine-parsable schema with complete attribution and verification metadata:
+
+```yaml
+---
+source_id: "src-2026-mironov-rdp"
+title: "Rényi Differential Privacy"
+author_institution: "Ilya Mironov / Microsoft Research"
+publication_date: "2017-05-22"
+url: "https://arxiv.org/abs/1702.07476"
+retrieved_at: "2026-11-03T06:00:00Z"
+verification_status: "peer_reviewed" # peer_reviewed | company_verified | community_validated
+primary_domain: "privacy-engineering"
+topic: "differential-privacy"
+target_levels: ["L5", "L6"]
+companies_tested: ["Apple", "Google", "OpenAI"]
+key_invariants_extracted:
+  - "Rényi divergence order alpha privacy composition bounds"
+  - "Subsampled Gaussian mechanism amplification"
+interview_question_mappings:
+  - question_id: "ex-dp-01"
+    description: "Compute privacy budget epsilon after 1000 rounds of DP-SGD under RDP"
+    target_company: "Apple"
+    target_level: "L6"
+  - question_id: "mock-apple-04"
+    description: "Design Private Cloud Compute telemetry pipeline with local DP"
+    target_company: "Apple"
+    target_level: "L6"
+---
+```
+
+#### 6.2.2 Curation & Validation Invariants
+1. **Provenance Mandatory**: Every problem prompt in `<domain>/<topic>/exercises/` and every mock interview scenario MUST contain a valid `source_id` referencing a verified entry in `references.md`.
+2. **Attribution Integrity**: Questions cite target companies, tested levels (L4–L6), and verified dates to prevent stale or hallucinated interview questions.
+3. **Automated Validation**: Automated CI checks inspect topic directories to ensure 100% of problem sets resolve to valid, active source citations.
+
+---
+
+### 6.3 Out-of-Git Personal State Plane (§R4)
+
+All user performance state is stored strictly outside the Git repository in an XDG data directory.
 
 Persistent path resolution logic:
 ```python
 def resolve_learn_data_dir() -> Path:
-    if "LEARN_DATA_DIR" in os.environ:
+    if "LEARN_DATA_DIR" in os.environ and os.environ["LEARN_DATA_DIR"].strip():
         return Path(os.environ["LEARN_DATA_DIR"]).expanduser().resolve()
     xdg_data = os.environ.get("XDG_DATA_HOME")
-    if xdg_data:
+    if xdg_data and xdg_data.strip():
         return (Path(xdg_data) / "learn").expanduser().resolve()
     return (Path.home() / ".local" / "share" / "learn").resolve()
 ```
 
-#### File Schemas in `$LEARN_DATA_DIR`
+#### Canonical File Schemas in `$LEARN_DATA_DIR`
 
-1. **`user_profile.json`**:
+1. **`user_profile.json` (Canonical User Profile & Proficiency Ratings)**:
 ```json
 {
   "user_id": "will",
@@ -454,26 +528,34 @@ def resolve_learn_data_dir() -> Path:
 }
 ```
 
-2. **`pinned_topics.json`**:
+2. **`pinned_topics.json` (Canonical Priority Queue)**:
 ```json
 [
   {
     "topic_id": "differential-privacy",
     "domain": "privacy-engineering",
+    "title": "Modern Differential Privacy",
     "priority": "high",
     "pinned_at": "2026-11-03T05:00:00Z",
-    "target_mastery_date": "2026-11-15",
-    "notes": "Focus on Rényi DP and gradient sanitization for Anthropic loop"
+    "target_deadline": "2026-12-01T00:00:00Z",
+    "notes": "Focus on Rényi DP and gradient sanitization for Apple Staff loop",
+    "current_rating": 3.5,
+    "target_rating": 4.8,
+    "status": "in_progress"
   }
 ]
 ```
 
-3. **`sessions/<session_id>.json`**:
+3. **`sessions/<session_id>.json` (Canonical Quiz & Mock Interview Transcripts)**:
 ```json
 {
   "session_id": "sess-20261103-mock-0182",
   "type": "mock_interview",
-  "mode": "no-hints",
+  "timing_mode": "timed",
+  "duration_minutes": 45,
+  "assistance_mode": "hints",
+  "hint_count": 1,
+  "probing_mode": "standard",
   "role_track": "ai_lab_research_l5",
   "company": "OpenAI",
   "topic": "algorithms",
@@ -481,7 +563,7 @@ def resolve_learn_data_dir() -> Path:
   "end_time": "2026-11-03T06:45:00Z",
   "transcript": [
     {"speaker": "interviewer", "text": "Design a memory-bounded streaming batcher..."},
-    {"speaker": "candidate", "text": "I'll start by clarifying input throughput and chunk bounds..."}
+    {"speaker": "candidate", "text": "I will start by clarifying input throughput and chunk bounds..."}
   ],
   "rubric_scores": {
     "decomposition": 4.5,
@@ -492,6 +574,34 @@ def resolve_learn_data_dir() -> Path:
   },
   "bar_decision": "Hire"
 }
+```
+
+4. **`resumes/alignment_report.json` (Canonical Role & Resume Gap Analysis)**:
+```json
+{
+  "user_id": "will",
+  "analyzed_at": "2026-11-03T06:30:00Z",
+  "target_company": "OpenAI",
+  "target_role": "AI Lab Research Engineer L5",
+  "fit_score": 82.5,
+  "status": "Targeted Gaps Exist",
+  "top_skill_gaps": [
+    {"topic_id": "differential-privacy", "current": 3.5, "target": 4.5, "weight": 0.3},
+    {"topic_id": "rust", "current": 3.2, "target": 4.0, "weight": 0.25}
+  ],
+  "custom_loop": [
+    {"round": 1, "type": "Practical Systems Coding", "focus": "Asynchronous Tensor Batcher"},
+    {"round": 2, "type": "Algorithmic Rigor", "focus": "Amortized Streaming Buffer"},
+    {"round": 3, "type": "Systems Architecture", "focus": "Distributed GPU Node Ingestion"},
+    {"round": 4, "type": "Domain Specialization", "focus": "Differential Privacy & Gradient Sanitization"},
+    {"round": 5, "type": "Values & Research Alignment", "focus": "Research velocity & engineering empathy"}
+  ]
+}
+```
+
+5. **`telemetry/usage_costs.jsonl` (Canonical Cost & Token Ledger)**:
+```json
+{"telemetry_id": "0194e3b1-7a20-7210-9b41-f7619280d001", "timestamp": "2026-11-03T06:45:00.123Z", "provider": "claude", "model": "claude-sonnet-3-7", "execution_tier": "subscription_cli", "input_tokens": 1420, "output_tokens": 380, "cached_tokens": 850, "thinking_tokens": 0, "duration_ms": 2150, "estimated_cost_usd": 0.0, "nominal_value_usd": 0.01524, "success": true, "error_message": null, "workflow_type": "adaptive_quiz"}
 ```
 
 ---

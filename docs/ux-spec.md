@@ -253,7 +253,7 @@ The user wants targeted, interactive practice on a specific topic or competency.
    - Example: Global multi-region rate limiter handling cross-datacenter WAN partitions, eventual consistency reconciliation, and automated DDoS traffic shedding under degraded network states.
 
 #### 4.3 Dynamic Difficulty Stepping Algorithm
-- **User Skill Rating**: Each topic maintains an active skill rating $R \in [1.0, 5.0]$ in `$LEARN_DATA_DIR/ratings/subdomain_ratings.json`.
+- **User Skill Rating**: Each topic maintains an active skill rating $R \in [1.0, 5.0]$ in `$LEARN_DATA_DIR/user_profile.json` under `subdomain_ratings` (with compatibility fallback in `$LEARN_DATA_DIR/ratings/subdomain_ratings.json`).
 - **Turn Evaluation**: The candidate's response is scored across the 5-dimension rubric (Score $S \in [1.0, 5.0]$).
 - **Stepping Rule**:
   - **Pass ($S \ge 4.0$)**:
@@ -288,33 +288,56 @@ flowchart TD
 #### 5.1 User Intent & Mental Model
 The user wants to simulate a real, high-stakes 45–60 minute technical interview round at a target company (e.g. OpenAI Research Engineer Coding, Google L5 Distributed Systems, or Apple L6 Staff Privacy).
 
-#### 5.2 The Two Operational Modes
+#### 5.2 Orthogonal Interview Configuration Dimensions
 
-##### Mode A: `hints` Mode (Socratic Coaching)
-- **Role of AI**: Acts as an observant, collaborative senior/staff interviewer.
-- **Stuck Detection**: If the candidate produces no output for 3 minutes or explicitly asks for guidance ("I'm stuck on how to handle cycle detection"), the AI provides progressive 3-level hints:
-  - **Level 1 (Conceptual Nudge)**: Points to the relevant invariant without revealing the method.  
-    *Example*: "Consider what property of the directed graph changes when you traverse a back-edge in DFS."
-  - **Level 2 (Structural Direction)**: Suggests the algorithmic or architectural pattern.  
-    *Example*: "Would maintaining a 3-state coloring (Unvisited, Visiting, Visited) or computing in-degrees for Kahn's algorithm resolve the cycle?"
-  - **Level 3 (Concrete Scaffold)**: Provides a pseudocode outline or concrete data structure recommendation.  
-    *Example*: "Here is the state signature: `def has_cycle(node, visited_states)`. When `visited_states[node] == VISITING`, return True."
-- **Hint Penalty**: Each hint level used is logged and applies a calibrated deduction to the Technical Execution rubric score.
+To satisfy Requirement §R3, the interview engine decouples timing, assistance, and probing into three orthogonal configuration axes, permitting candidates to customize the exact interview simulation required:
 
-##### Mode B: `no-hints` Mode (Timed Stress & Adversarial Probing)
-- **Role of AI**: Strict, neutral interviewer adhering to rigorous FAANG/AI Lab bar standards.
-- **Timing**: Strictly enforced countdown timer (45 minutes for coding, 60 minutes for systems/architecture).
-- **Zero Unprompted Hints**: AI will not provide hints even if asked; responds: *"In this timed simulation round, work through your assumptions and proceed with your best design."*
-- **Adversarial Stress Probing (Phase 5)**: The AI actively attacks the candidate's solution with harsh production realities:
+```
++----------------------------------------------------------------------------------------------------+
+|                                INTERVIEW CONFIGURATION MATRIX                                      |
++----------------------------------------------------------------------------------------------------+
+| Axis 1: Timing Mode       --> [timed (45m coding / 60m design)] vs. [untimed (self-paced)]         |
+| Axis 2: Assistance Mode   --> [hints (3-tier progressive)] vs. [no-hints (strict simulation)]      |
+| Axis 3: Probing Mode      --> [standard follow-ups] vs. [adversarial_stress (100x, partitions)]     |
++----------------------------------------------------------------------------------------------------+
+```
+
+All 8 combinations are supported:
+- **`untimed + no-hints + standard`**: Self-paced independent practice without timer pressure, solving problems without assistance.
+- **`timed + hints + standard`**: Socratic coaching session under realistic FAANG time constraints.
+- **`timed + no-hints + adversarial_stress`**: Full-fidelity simulation of an L6 Staff pressure interview.
+- **`untimed + hints + standard`**: In-depth guided learning and conceptual scaffolding.
+
+##### Axis 1: Timing Configuration
+- **`timed`**: Strictly enforced countdown timer (45 minutes for coding rounds, 60 minutes for systems/architecture). Timer expiry transitions session directly to Phase 5 follow-up debrief.
+- **`untimed`**: No countdown clock. Candidate works through requirements, architecture, implementation, and verification at their own pace.
+
+##### Axis 2: Assistance Configuration
+- **`hints` (Socratic Coaching)**:
+  - **Role of AI**: Acts as an observant, collaborative senior/staff interviewer.
+  - **Progressive 3-Level Hints**:
+    - **Level 1 (Conceptual Nudge)**: Points to relevant invariant without revealing method.  
+      *Example*: "Consider what property of the directed graph changes when traversing a back-edge in DFS."
+    - **Level 2 (Structural Direction)**: Suggests algorithmic or architectural pattern.  
+      *Example*: "Would maintaining a 3-state coloring (Unvisited, Visiting, Visited) or computing in-degrees for Kahn's algorithm resolve the cycle?"
+    - **Level 3 (Concrete Scaffold)**: Provides pseudocode outline or concrete data structure recommendation.  
+      *Example*: "Here is the state signature: `def has_cycle(node, visited_states)`. When `visited_states[node] == VISITING`, return True."
+  - **Hint Scoring**: Each hint level used is logged and applies a calibrated deduction to the Technical Execution rubric score.
+- **`no-hints` (Strict Simulation)**:
+  - **Zero Unprompted Assistance**: The AI interviewer provides no hints even if explicitly requested; responds: *"In this simulation mode, work through your assumptions and proceed with your best design."*
+
+##### Axis 3: Probing Configuration
+- **`standard`**: Interviewer asks standard technical clarification and follow-up questions during Phase 5.
+- **`adversarial_stress`**: The AI interviewer actively probes design limits with catastrophic scenarios:
   - *"Traffic just increased 100x and p99 latency spiked past 2 seconds. Where is your bottleneck and how do you shed load?"*
-  - *"The primary database replica suffered a silent bit-rot corruption during a cross-region failover. How does your reconciliation invariant detect this?"*
-  - *"An attacker injects an indirect prompt payload via an external RSS feed fetched by your agent. How does your sandbox prevent privilege escalation?"*
+  - *"The primary database replica suffered silent bit-rot corruption during cross-region failover. How does your reconciliation invariant detect this?"*
+  - *"An attacker injects an indirect prompt payload via an external RSS feed. How does your sandbox prevent privilege escalation?"*
 
 #### 5.3 The 5 Standard Interview Phases
 1. **Phase 1: Clarification & Requirements Formulation (0–8 min)**:
    - Candidate must ask clarifying questions, define inputs/outputs, throughput ($QPS$), latency targets, and explicit constraints.
 2. **Phase 2: High-Level Architecture & Technical Approach (8–18 min)**:
-   - Candidate outlines the algorithmic strategy or architectural topology, compares alternative approaches, and states core invariants.
+   - Candidate outlines algorithmic strategy or architectural topology, compares alternative approaches, and states core invariants.
 3. **Phase 3: Detailed Implementation & Execution (18–35 min)**:
    - Candidate writes complete, compilable, idiomatic code or details component interfaces, schemas, and protocol flows.
 4. **Phase 4: Verification, Edge Cases & Complexity Analysis (35–42 min)**:
@@ -323,7 +346,7 @@ The user wants to simulate a real, high-stakes 45–60 minute technical intervie
    - Interviewer probes design decisions, injects new constraints, or tests resilience under failure.
 
 #### 5.4 Post-Interview Rubric Scorecard
-At the conclusion of the session, the engine generates an authoritative scorecard stored in `$LEARN_DATA_DIR/interviews/transcripts/<session_id>.json`:
+At the conclusion of the session, the engine generates an authoritative scorecard stored in `$LEARN_DATA_DIR/sessions/<session_id>.json` (with compatibility alias in `$LEARN_DATA_DIR/interviews/transcripts/<session_id>.json`):
 - **Overall Hiring Recommendation**: `Strong Hire` | `Hire` | `Lean Hire` | `Lean No Hire` | `No Hire`.
 - **Calibrated Level Recommendation**: `L4 Mid` | `L5 Senior` | `L6 Staff`.
 - **5-Dimension Rubric Scores**: Graded 1.0 to 5.0 with concrete quotes and transcript references.
@@ -640,19 +663,18 @@ def resolve_learn_data_dir() -> Path:
 
 ```
 $LEARN_DATA_DIR/
-├── user_profile.json          # Overall subdomain proficiency ratings and goals
-├── pins/
-│   └── pinned_topics.json     # Active priority topics, target dates, and notes
+├── user_profile.json            # Canonical user profile & subdomain proficiency ratings
+├── pinned_topics.json           # Canonical active priority topics and target dates
 ├── sessions/
-│   └── <session_id>.json      # Mock interview transcripts, turn logs, and scores
+│   └── <session_id>.json        # Canonical mock interview & adaptive quiz transcripts
 ├── resumes/
-│   ├── active_resume.md       # Candidate resume in markdown
-│   └── gap_analysis.json      # Latest fit score, gap rankings, and interview loop
+│   ├── active_resume.md         # Candidate resume in markdown
+│   └── alignment_report.json    # Canonical role fit scores, gap rankings, and 5-round loop
 └── telemetry/
-    └── usage_costs.jsonl      # Turn-by-turn token counts, latency, and estimated costs
+    └── usage_costs.jsonl        # Turn-by-turn token counts, latency, and estimated costs
 ```
 
-#### 1. `user_profile.json`
+#### 1. `user_profile.json` (Canonical User Profile & Proficiency Ratings)
 ```json
 {
   "user_id": "will",
@@ -670,7 +692,7 @@ $LEARN_DATA_DIR/
 }
 ```
 
-#### 2. `pins/pinned_topics.json`
+#### 2. `pinned_topics.json` (Canonical Priority Queue)
 ```json
 [
   {
@@ -681,19 +703,23 @@ $LEARN_DATA_DIR/
     "pinned_at": "2026-11-03T06:30:00Z",
     "target_deadline": "2026-12-01T00:00:00Z",
     "notes": "Focus on DP-SGD and RDP composition for Apple Staff Privacy loop",
-    "current_rating": 3.8,
+    "current_rating": 3.5,
     "target_rating": 4.8,
     "status": "in_progress"
   }
 ]
 ```
 
-#### 3. `sessions/<session_id>.json`
+#### 3. `sessions/<session_id>.json` (Canonical Quiz & Mock Interview Transcripts)
 ```json
 {
   "session_id": "sess-20261103-mock-0182",
   "type": "mock_interview",
-  "mode": "no-hints",
+  "timing_mode": "timed",
+  "duration_minutes": 45,
+  "assistance_mode": "hints",
+  "hint_count": 1,
+  "probing_mode": "standard",
   "role_track": "ai_lab_research_l5",
   "company": "OpenAI",
   "topic": "algorithms",
@@ -714,9 +740,32 @@ $LEARN_DATA_DIR/
 }
 ```
 
-#### 4. `telemetry/usage_costs.jsonl`
+#### 4. `resumes/alignment_report.json` (Canonical Role & Resume Gap Analysis)
 ```json
-{"telemetry_id": "0194e3b1-7a20-7210-9b41-f7619280d001", "timestamp": "2026-11-03T06:45:00.123Z", "provider": "claude", "model": "claude-sonnet-3-7", "execution_tier": "subscription_cli", "input_tokens": 1420, "output_tokens": 380, "duration_ms": 2150, "estimated_cost_usd": 0.0, "success": true, "workflow_type": "adaptive_quiz"}
+{
+  "user_id": "will",
+  "analyzed_at": "2026-11-03T06:30:00Z",
+  "target_company": "OpenAI",
+  "target_role": "AI Lab Research Engineer L5",
+  "fit_score": 82.5,
+  "status": "Targeted Gaps Exist",
+  "top_skill_gaps": [
+    {"topic_id": "differential-privacy", "current": 3.5, "target": 4.5, "weight": 0.3},
+    {"topic_id": "rust", "current": 3.2, "target": 4.0, "weight": 0.25}
+  ],
+  "custom_loop": [
+    {"round": 1, "type": "Practical Systems Coding", "focus": "Asynchronous Tensor Batcher"},
+    {"round": 2, "type": "Algorithmic Rigor", "focus": "Amortized Streaming Buffer"},
+    {"round": 3, "type": "Systems Architecture", "focus": "Distributed GPU Node Ingestion"},
+    {"round": 4, "type": "Domain Specialization", "focus": "Differential Privacy & Gradient Sanitization"},
+    {"round": 5, "type": "Values & Research Alignment", "focus": "Research velocity & engineering empathy"}
+  ]
+}
+```
+
+#### 5. `telemetry/usage_costs.jsonl` (Canonical Cost & Token Ledger)
+```json
+{"telemetry_id": "0194e3b1-7a20-7210-9b41-f7619280d001", "timestamp": "2026-11-03T06:45:00.123Z", "provider": "claude", "model": "claude-sonnet-3-7", "execution_tier": "subscription_cli", "input_tokens": 1420, "output_tokens": 380, "cached_tokens": 850, "thinking_tokens": 0, "duration_ms": 2150, "estimated_cost_usd": 0.0, "nominal_value_usd": 0.01524, "success": true, "error_message": null, "workflow_type": "adaptive_quiz"}
 ```
 
 ### 7.3 Git Isolation & Automated Test Verification Invariant

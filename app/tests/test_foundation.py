@@ -1,6 +1,7 @@
 """Foundation tests verifying package imports, health check, settings, and repository isolation."""
 
 import os
+import shutil
 import subprocess
 from pathlib import Path
 import pytest
@@ -50,118 +51,143 @@ async def test_api_status_endpoint():
         assert response.status_code == 200
         payload = response.json()
         assert payload.get("status") == "operational"
-        assert "tailnet_reachability" in payload
+        assert payload.get("tailnet_reachability", "").startswith("http://")
         assert "topics_available" in payload
         assert "data_dir" in payload
 
 
 @pytest.mark.unit
-def test_personal_state_store_resolves_outside_repository_by_default():
+def test_personal_state_store_resolves_outside_repository_by_default(monkeypatch):
     """Verify personal state store resolves outside repository by default (§R4 invariant)."""
-    # Create clean settings without LEARN_DATA_DIR override
-    env_backup = os.environ.get("LEARN_DATA_DIR")
+    monkeypatch.delenv("LEARN_DATA_DIR", raising=False)
+    monkeypatch.delenv("XDG_DATA_HOME", raising=False)
+
+    clean_settings = Settings()
+    expected_default = (Path.home() / ".local" / "share" / "learn").resolve()
+    assert clean_settings.data_dir == expected_default
+
+    # Assert data_dir is outside repo_root
+    repo_root = clean_settings.repo_root.resolve()
+    is_inside_repo = False
     try:
-        if "LEARN_DATA_DIR" in os.environ:
-            del os.environ["LEARN_DATA_DIR"]
-
-        clean_settings = Settings()
-        expected_default = (Path.home() / ".local" / "share" / "learn").resolve()
-        assert clean_settings.data_dir == expected_default
-
-        # Assert data_dir is outside repo_root
-        repo_root = clean_settings.repo_root.resolve()
+        clean_settings.data_dir.resolve().relative_to(repo_root)
+        is_inside_repo = True
+    except ValueError:
         is_inside_repo = False
-        try:
-            clean_settings.data_dir.resolve().relative_to(repo_root)
-            is_inside_repo = True
-        except ValueError:
-            is_inside_repo = False
 
-        assert not is_inside_repo, (
-            f"Personal state directory {clean_settings.data_dir} must not be inside repo root {repo_root}"
-        )
-    finally:
-        if env_backup is not None:
-            os.environ["LEARN_DATA_DIR"] = env_backup
+    assert not is_inside_repo, (
+        f"Personal state directory {clean_settings.data_dir} must not be inside repo root {repo_root}"
+    )
+
+
+@pytest.mark.unit
+def test_xdg_data_home_resolution(monkeypatch, tmp_path: Path):
+    """Verify XDG_DATA_HOME environment variable precedence when LEARN_DATA_DIR is unset."""
+    custom_xdg = tmp_path / "custom_xdg"
+    monkeypatch.delenv("LEARN_DATA_DIR", raising=False)
+    monkeypatch.setenv("XDG_DATA_HOME", str(custom_xdg))
+
+    test_settings = Settings()
+    expected_path = (custom_xdg / "learn").resolve()
+    assert test_settings.data_dir == expected_path
+
+
+@pytest.mark.unit
+def test_rejection_of_in_repo_data_dir():
+    """Verify Settings rejects personal state directories located inside repository root."""
+    repo_root = settings.repo_root.resolve()
+    invalid_data_dir = repo_root / "personal_state"
+    with pytest.raises(ValueError, match="must not be located inside repository root"):
+        Settings(data_dir=invalid_data_dir)
 
 
 @pytest.mark.unit
 def test_clean_repository_invariant(tmp_path: Path):
-    """Verify executing data operations maintains clean repository invariant.
+    """Verify .gitignore rules isolate personal state inside an isolated temporary git repo.
 
-    Asserts that:
-    1. Operating with an isolated data store creates directories outside the repo.
-    2. Even if personal state files or directories are created locally,
-       .gitignore strictly prevents them from showing up as untracked files
-       in git status --porcelain.
+    Runs in a dedicated temporary git sandbox to ensure zero risk of modifying
+    or deleting existing user data in the actual repository checkout.
     """
-    # 1. Verify custom data directory outside repo operations cleanly
+    # 1. Verify custom data directory outside repo initializes required subdirectories
     custom_data_dir = tmp_path / "test_learn_data"
     test_settings = Settings(data_dir=custom_data_dir)
     test_settings.ensure_data_directories()
 
     assert (custom_data_dir / "sessions").is_dir()
+    assert (custom_data_dir / "interviews").is_dir()
     assert (custom_data_dir / "resumes").is_dir()
     assert (custom_data_dir / "telemetry").is_dir()
     assert (custom_data_dir / "pins").is_dir()
+    assert (custom_data_dir / "ratings").is_dir()
 
-    # 2. Test gitignore effectiveness inside repo_root
-    repo_root = test_settings.repo_root.resolve()
+    # 2. Test gitignore effectiveness inside an isolated temporary git repository
+    sandbox_repo = tmp_path / "sandbox_repo"
+    sandbox_repo.mkdir()
 
-    # Create dummy personal state files and directories directly in repo root
-    dummy_files = [
-        repo_root / "user_profile.json",
-        repo_root / "pinned_topics.json",
-        repo_root / "sessions" / "dummy_session.json",
-        repo_root / "resumes" / "dummy_resume.md",
-        repo_root / "telemetry" / "dummy_usage.jsonl",
-        repo_root / "personal_data" / "leak.txt",
+    # Copy project's authoritative .gitignore into sandbox
+    src_gitignore = settings.repo_root / ".gitignore"
+    dest_gitignore = sandbox_repo / ".gitignore"
+    shutil.copyfile(src_gitignore, dest_gitignore)
+
+    # Initialize git in sandbox
+    subprocess.run(["git", "init"], cwd=sandbox_repo, capture_output=True, check=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=sandbox_repo,
+        capture_output=True,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=sandbox_repo,
+        capture_output=True,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "add", ".gitignore"],
+        cwd=sandbox_repo,
+        capture_output=True,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "chore: add gitignore"],
+        cwd=sandbox_repo,
+        capture_output=True,
+        check=True,
+    )
+
+    # Populate sandbox with dummy personal state artifacts
+    state_dirs = ["sessions", "interviews", "resumes", "telemetry", "personal_data", "pins", "ratings"]
+    for d in state_dirs:
+        (sandbox_repo / d).mkdir(parents=True, exist_ok=True)
+
+    dummy_artifacts = [
+        sandbox_repo / "user_profile.json",
+        sandbox_repo / "pinned_topics.json",
+        sandbox_repo / "sessions" / "session_123.json",
+        sandbox_repo / "interviews" / "transcript_123.json",
+        sandbox_repo / "resumes" / "my_resume.md",
+        sandbox_repo / "telemetry" / "costs.jsonl",
+        sandbox_repo / "personal_data" / "leak.txt",
+        sandbox_repo / "pins" / "pinned_topics.json",
+        sandbox_repo / "ratings" / "subdomain_ratings.json",
     ]
 
-    try:
-        (repo_root / "sessions").mkdir(parents=True, exist_ok=True)
-        (repo_root / "resumes").mkdir(parents=True, exist_ok=True)
-        (repo_root / "telemetry").mkdir(parents=True, exist_ok=True)
-        (repo_root / "personal_data").mkdir(parents=True, exist_ok=True)
+    for artifact in dummy_artifacts:
+        artifact.write_text('{"dummy": true}\n', encoding="utf-8")
 
-        for dummy in dummy_files:
-            dummy.write_text("{\"test\": true}\n", encoding="utf-8")
+    # Query git status --porcelain in sandbox repo
+    result = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=sandbox_repo,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
 
-        # Query git status --porcelain
-        result = subprocess.run(
-            ["git", "status", "--porcelain"],
-            cwd=repo_root,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
+    untracked_lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
-        untracked_lines = [
-            line for line in result.stdout.splitlines()
-            if line.startswith("??") or line.startswith(" M") or line.startswith("A ")
-        ]
-
-        # Verify none of the dummy personal state files are tracked or untracked
-        forbidden_patterns = [
-            "user_profile.json",
-            "pinned_topics.json",
-            "sessions/",
-            "resumes/",
-            "telemetry/",
-            "personal_data/",
-        ]
-
-        for line in untracked_lines:
-            for pattern in forbidden_patterns:
-                assert pattern not in line, (
-                    f"Violation of Clean Repository Invariant: {pattern} reported in git status: {line}"
-                )
-    finally:
-        # Clean up temporary test files in repo root
-        for dummy in dummy_files:
-            if dummy.exists():
-                dummy.unlink()
-        for folder in ["sessions", "resumes", "telemetry", "personal_data"]:
-            dir_to_remove = repo_root / folder
-            if dir_to_remove.exists() and not any(dir_to_remove.iterdir()):
-                dir_to_remove.rmdir()
+    # Invariant: Every personal state artifact must be completely ignored by .gitignore
+    assert (
+        untracked_lines == []
+    ), f"Clean repository invariant failed: untracked personal files found in git status: {untracked_lines}"

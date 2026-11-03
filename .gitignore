@@ -20,7 +20,10 @@ local_state/
 # Personal state files and database artifacts
 user_profile.json
 pinned_topics.json
+pins/
+ratings/
 sessions/
+interviews/
 resumes/
 telemetry/
 *.jsonl
