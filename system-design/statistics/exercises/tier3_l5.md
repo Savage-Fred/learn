@@ -2,6 +2,12 @@
 
 **Objective**: Implement a continuous monitoring framework using mixture Sequential Probability Ratio Test (mSPRT) allowing early stopping while strictly bounding Type I error.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `kohavi-controlled-experiments-2020`, `deng-cuped-2013`
+- **Applicable Citations**:
+  - [Trustworthy Online Controlled Experiments: A Practical Guide to A/B Testing](https://www.cambridge.org/core/books/trustworthy-online-controlled-experiments/D97B26382DEF7E123BEBF29C99026219) (2020)
+  - [Improving the Sensitivity of Online Controlled Experiments by Utilizing Pre-Experiment Data](https://dl.acm.org/doi/10.1145/2433396.2433413) (2013)
+
 ---
 
 ## Problem Statement

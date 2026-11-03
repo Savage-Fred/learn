@@ -6,11 +6,11 @@ This document articulates the axiomatic invariants, theoretical grounding, menta
 
 ## 1. Axiomatic Core Invariants
 
-### Invariant 1: Membership Inference Distinguishability Invariant
+### Invariant 1: Membership Inference Advantage Invariant
 $$
-\mathcal{A}_{MIA}(x, y; \theta) \text{ exploits } \mathcal{L}(f_\theta(x), y) \sim \mathcal{D}_{train} \text{ vs } \mathcal{D}_{test}. \quad \text{Advantage } \text{Adv} = 2 |\Pr[\text{Guess} = 1 \mid \text{In}] - 0.5|.
+\text{Adv}(\mathcal{A}) = \text{TPR} - \text{FPR} = \Pr[\mathcal{A}(x) = 1 \mid x \in \mathcal{D}_{train}] - \Pr[\mathcal{A}(x) = 1 \mid x \notin \mathcal{D}_{train}].
 $$
-**Implications & Guarantees**: Models that overfit display higher prediction confidence and lower loss on training records, enabling an adversary to distinguish members from non-members with high statistical confidence.
+**Implications & Guarantees**: Advantage measures excess true-positive rate over false-positive rate. A trivial classifier guessing all-member has TPR=1, FPR=1 yielding Adv=0; a model with training memorization yields Adv > 0.
 
 ### Invariant 2: Homomorphic Addition and Multiplication Invariant (CKKS)
 $$
@@ -45,18 +45,27 @@ import hashlib
 from typing import List, Dict
 
 class SecAggClient:
-    def __init__(self, client_id: int, total_clients: int, private_seed: int):
+    def __init__(self, client_id: int, total_clients: int, private_key: int):
         self.id = client_id
         self.total = total_clients
-        self.private_seed = private_seed
+        self.private_key = private_key # sk_i
+        self.public_keys: Dict[int, int] = {}
+        # Prime modulus and generator for modular Diffie-Hellman
+        self.p = 2147483647 # Mersenne prime 2^31 - 1
+        self.g = 7
+        self.public_key = pow(self.g, self.private_key, self.p)
+
+    def register_public_keys(self, pub_keys: Dict[int, int]) -> None:
+        self.public_keys = pub_keys
 
     def generate_shared_mask(self, peer_id: int) -> np.ndarray:
-        # Deterministic pairwise seed from shared secret
-        low, high = min(self.id, peer_id), max(self.id, peer_id)
-        seed_bytes = hashlib.sha256(f"shared:{low}:{high}".encode("utf-8")).digest()
+        # Compute Diffie-Hellman shared secret: S_ij = (pk_j)^sk_i mod p
+        peer_pk = self.public_keys[peer_id]
+        shared_secret = pow(peer_pk, self.private_key, self.p)
+        # Derive mask seed from shared secret
+        seed_bytes = hashlib.sha256(f"dh-secret:{shared_secret}".encode("utf-8")).digest()
         seed_int = int.from_bytes(seed_bytes[:4], "big")
         rng = np.random.default_rng(seed_int)
-        # Random mask vector of dimension 4
         mask = rng.normal(0, 10.0, size=4)
         # Invariant: If self.id < peer_id, add mask; if self.id > peer_id, subtract mask
         return mask if self.id < peer_id else -mask
@@ -70,10 +79,10 @@ class SecAggClient:
 
 class SecAggServer:
     def aggregate(self, masked_vectors: List[np.ndarray]) -> np.ndarray:
-        # Summing all masked vectors cancels all pairwise masks identically
+        # Summing all masked vectors cancels all pairwise DH masks identically
         return np.sum(masked_vectors, axis=0)
 ```
-**Analysis**: Demonstrates the core algebraic zero-sum invariant of Secure Aggregation: pairwise masks cancel out completely in the sum.
+**Analysis**: Demonstrates the core algebraic zero-sum invariant of Secure Aggregation using Diffie-Hellman shared secrets for genuine confidentiality.
 
 ---
 

@@ -2,6 +2,12 @@
 
 **Objective**: Build a policy evaluation proxy that intercepts agent tool calls and enforces parameter schemas, rate limits, and allowed actions.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `hardy-confused-deputy-1988`, `rfc-8693-token-exchange`
+- **Applicable Citations**:
+  - [The Confused Deputy: (or why capabilities might have been invented)](https://dl.acm.org/doi/10.1145/54289.848243) (1988)
+  - [RFC 8693: OAuth 2.0 Token Exchange](https://datatracker.ietf.org/doc/html/rfc8693) (2020)
+
 ---
 
 ## Problem Statement

@@ -2,6 +2,13 @@
 
 **Objective**: Design an encrypted inference service that evaluates a linear model and polynomial activation function over CKKS-encrypted vectors without decrypting data.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `shokri-mia-2017`, `carlini-extracting-training-data-2021`, `bonawitz-secagg-2017`
+- **Applicable Citations**:
+  - [Membership Inference Attacks Against Machine Learning Models](https://ieeexplore.ieee.org/document/7958568) (2017)
+  - [Extracting Training Data from Large Language Models](https://www.usenix.org/conference/usenixsecurity21/presentation/carlini-extracting) (2021)
+  - [Practical Secure Aggregation for Privacy-Preserving Machine Learning](https://dl.acm.org/doi/10.1145/3133956.3133982) (2017)
+
 ---
 
 ## Problem Statement

@@ -67,8 +67,10 @@ class AttenuatedCapabilityToken:
         # Recompute signature from base key
         curr_sig = hmac.new(secret_key, self.token_id.encode("utf-8"), hashlib.sha256).digest()
         for caveat in self.caveats:
-            key, val = caveat.split("=")
-            # Check context validity
+            if "=" not in caveat:
+                return False
+            key, val = caveat.split("=", 1)
+            # Fail-closed enforcement: every caveat must have an explicit verification rule
             if key == "max_time":
                 if time.time() > float(val):
                     return False
@@ -78,6 +80,12 @@ class AttenuatedCapabilityToken:
             elif key == "read_only":
                 if context.get("action") != "read":
                     return False
+            elif key == "customer_id":
+                if str(context.get("customer_id")) != val:
+                    return False
+            else:
+                # Invariant: Unknown/unhandled caveat MUST reject verification (fail-closed)
+                return False
             # Advance HMAC chain
             curr_sig = hmac.new(curr_sig, caveat.encode("utf-8"), hashlib.sha256).digest()
         

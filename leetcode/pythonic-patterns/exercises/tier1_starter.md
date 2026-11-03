@@ -2,6 +2,13 @@
 
 **Objective**: Build a memory-safe custom stream reader class implementing __iter__, __next__, __enter__, and __exit__ protocols.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `ramalho-fluent-python-2022`, `pep-544-protocols`, `slatkin-effective-python-2019`
+- **Applicable Citations**:
+  - [Fluent Python: Clear, Concise, and Effective Programming](https://www.oreilly.com/library/view/fluent-python-2nd/9781492056348/) (2022)
+  - [PEP 544 – Protocols: Structural subtyping (static duck typing)](https://peps.python.org/pep-0544/) (2018)
+  - [Effective Python: 90 Specific Ways to Write Better Python](https://effectivepython.com/) (2019)
+
 ---
 
 ## Problem Statement

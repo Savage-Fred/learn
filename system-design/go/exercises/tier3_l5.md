@@ -2,6 +2,12 @@
 
 **Objective**: Implement a distributed leader election client in Go using etcd/Consul lease primitives with automatic lease keep-alives and context-aware failover.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `donovan-kernighan-go-2015`, `vyukov-go-scheduler-2012`
+- **Applicable Citations**:
+  - [The Go Programming Language](https://www.gopl.io/) (2015)
+  - [Scalable Go Scheduler Design Doc](https://golang.org/s/go11sched) (2012)
+
 ---
 
 ## Problem Statement

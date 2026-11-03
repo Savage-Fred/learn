@@ -2,6 +2,12 @@
 
 **Objective**: Architect an experimentation platform for two-sided marketplaces that designs, schedules, and analyzes cluster-randomized switchback experiments mitigating SUTVA network spillover.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `kohavi-controlled-experiments-2020`, `deng-cuped-2013`
+- **Applicable Citations**:
+  - [Trustworthy Online Controlled Experiments: A Practical Guide to A/B Testing](https://www.cambridge.org/core/books/trustworthy-online-controlled-experiments/D97B26382DEF7E123BEBF29C99026219) (2020)
+  - [Improving the Sensitivity of Online Controlled Experiments by Utilizing Pre-Experiment Data](https://dl.acm.org/doi/10.1145/2433396.2433413) (2013)
+
 ---
 
 ## Problem Statement

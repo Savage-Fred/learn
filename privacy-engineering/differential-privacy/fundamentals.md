@@ -18,11 +18,11 @@ $$
 $$
 **Implications & Guarantees**: L2 sensitivity governs Gaussian noise calibration, enabling tighter composition than Laplace noise under vector-valued outputs.
 
-### Invariant 3: Rényi Differential Privacy (RDP) Additive Composition
+### Invariant 3: Rényi Differential Privacy (RDP) Adaptive Sequential Composition
 $$
-D_\alpha(\mathcal{M}_1 \circ \mathcal{M}_2(D) \parallel \mathcal{M}_1 \circ \mathcal{M}_2(D')) = D_\alpha(\mathcal{M}_1(D) \parallel \mathcal{M}_1(D')) + D_\alpha(\mathcal{M}_2(D) \parallel \mathcal{M}_2(D')).
+\forall \alpha > 1, \quad D_\alpha(\mathcal{M}_{1:k}(D) \parallel \mathcal{M}_{1:k}(D')) \le \sum_{i=1}^k D_\alpha(\mathcal{M}_i(D) \parallel \mathcal{M}_i(D')).
 $$
-**Implications & Guarantees**: RDP composes strictly linearly across thousands of training steps, converted back to (ε, δ)-DP to report formal privacy guarantees.
+**Implications & Guarantees**: Under adaptive sequential composition, Rényi divergence upper bounds compose linearly across thousands of training steps, achieving tight Gaussian tail bounds when converted to (ε, δ)-DP (Mironov 2017, Proposition 1).
 
 ---
 

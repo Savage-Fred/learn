@@ -2,6 +2,12 @@
 
 **Objective**: Implement a multi-threaded worker pool using std::sync::mpsc channels and Arc<Mutex<T>> with graceful shutdown on Drop.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `klabnik-rust-book-2023`, `mara-bos-atomics-2023`
+- **Applicable Citations**:
+  - [The Rust Programming Language](https://doc.rust-lang.org/book/) (2023)
+  - [Rust Atomics and Locks: Low-Level Concurrency in Practice](https://marabos.nl/atomics/) (2023)
+
 ---
 
 ## Problem Statement

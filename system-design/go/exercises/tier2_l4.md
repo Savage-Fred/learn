@@ -2,6 +2,12 @@
 
 **Objective**: Build a thread-safe in-memory cache in Go with single-flight request coalescing to prevent cache thundering herd under high concurrency.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `donovan-kernighan-go-2015`, `vyukov-go-scheduler-2012`
+- **Applicable Citations**:
+  - [The Go Programming Language](https://www.gopl.io/) (2015)
+  - [Scalable Go Scheduler Design Doc](https://golang.org/s/go11sched) (2012)
+
 ---
 
 ## Problem Statement

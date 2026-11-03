@@ -34,4 +34,4 @@ related_topics: ['security/fundamentals']
 - **L6 Expectation**: [System-wide architectural reframing, cross-domain security/resilience posture.]
 
 # References & Primary Sources
-- [Zanzibar: Google’s Flexible, Highly Available, Consistent Authorization System](https://research.google/pubs/pub48722/)
+- [Zanzibar: Google’s Consistent, Global Authorization System](https://www.usenix.org/conference/atc19/presentation/pang)

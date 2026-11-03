@@ -8,7 +8,7 @@ target_roles: ['Track 2', 'Track 4']
 target_level: "L5"
 source_trigger: "on_demand_deep_dive" # options: on_demand_deep_dive | rabbit-hole | mock_interview | exercise_solution
 invariants_covered:
-  - "Membership Inference Distinguishability Invariant"
+  - "Membership Inference Advantage Invariant"
 tags: ['pets-for-ai', 'privacy-engineering', 'interview-prep']
 related_topics: ['privacy-engineering/fundamentals']
 ---

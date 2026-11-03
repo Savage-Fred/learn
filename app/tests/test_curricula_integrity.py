@@ -188,6 +188,11 @@ def test_exercises_contain_all_four_tiers():
     for domain, topics in PRIORITY_TOPICS.items():
         for topic in topics:
             ex_dir = REPO_ROOT / domain / topic / "exercises"
+            ref_yaml = REPO_ROOT / domain / topic / "references.yaml"
+            with open(ref_yaml, "r", encoding="utf-8") as f:
+                refs = yaml.safe_load(f)
+            valid_ref_ids = {r["id"] for r in refs}
+
             for tier in required_tiers:
                 tier_file = ex_dir / tier
                 assert tier_file.is_file(), f"Topic {domain}/{topic} missing exercise {tier}"
@@ -196,6 +201,15 @@ def test_exercises_contain_all_four_tiers():
                 assert "Problem Statement" in content, f"Topic {domain}/{topic} exercise {tier} missing problem statement"
                 assert "Starter Code" in content, f"Topic {domain}/{topic} exercise {tier} missing starter code"
                 assert "Verification Test Cases" in content, f"Topic {domain}/{topic} exercise {tier} missing test cases"
+                
+                # Invariant 1: Exercise must explicitly reference supporting literature
+                assert "Source Reference IDs" in content, f"Topic {domain}/{topic} exercise {tier} missing Source Reference IDs"
+                for line in content.splitlines():
+                    if "Source Reference IDs" in line:
+                        for token in line.split("`"):
+                            token = token.strip().strip(",")
+                            if token and not token.startswith("-") and "Source" not in token:
+                                assert token in valid_ref_ids, f"Exercise {tier} in {domain}/{topic} references invalid source ID '{token}'"
 
 
 @pytest.mark.unit
@@ -211,3 +225,40 @@ def test_root_topic_aliases_and_symlinks_resolve():
         assert (alias_path / "references.yaml").is_file(), f"Root alias {alias} cannot access references.yaml"
         assert (alias_path / "rubric.md").is_file(), f"Root alias {alias} cannot access rubric.md"
         assert (alias_path / "exercises" / "tier1_starter.md").is_file(), f"Root alias {alias} cannot access tier1_starter.md"
+
+
+@pytest.mark.unit
+def test_zanzibar_citation_publisher_fidelity():
+    """Verify Google Zanzibar citation matches exact USENIX ATC 19 publisher record."""
+    ref_file = REPO_ROOT / "security" / "authn-authz" / "references.yaml"
+    with open(ref_file, "r", encoding="utf-8") as f:
+        refs = yaml.safe_load(f)
+    zanzibar_ref = next(r for r in refs if r["id"] == "google-zanzibar-2019")
+    assert zanzibar_ref["title"] == "Zanzibar: Google’s Consistent, Global Authorization System"
+    assert "https://www.usenix.org/conference/atc19/presentation/pang" in zanzibar_ref["canonical_url"]
+    assert "33--46" in zanzibar_ref["citation_bibtex"] or "pages={33--46}" in zanzibar_ref["citation_bibtex"]
+
+
+@pytest.mark.unit
+def test_mathematical_invariants_rigor():
+    """Verify mathematical invariant formulations in PETs and Differential Privacy."""
+    pets_fund = (REPO_ROOT / "privacy-engineering" / "pets-for-ai" / "fundamentals.md").read_text(encoding="utf-8")
+    assert "\\text{TPR} - \\text{FPR}" in pets_fund, "MIA advantage must be defined as TPR - FPR"
+
+    dp_fund = (REPO_ROOT / "privacy-engineering" / "differential-privacy" / "fundamentals.md").read_text(encoding="utf-8")
+    assert "\\le \\sum_{i=1}^k D_\\alpha" in dp_fund, "RDP composition must be stated as an inequality <= for sequential composition"
+
+
+@pytest.mark.unit
+def test_concurrency_and_security_code_soundness():
+    """Verify code examples for SSRF, capability fail-closed, and Rust SPSC soundness."""
+    tm_fund = (REPO_ROOT / "security" / "threat-modeling" / "fundamentals.md").read_text(encoding="utf-8")
+    assert "is_private_or_loopback_destination" in tm_fund, "SSRF protection must resolve hostnames to IP addresses"
+    assert "urlsplit" in tm_fund, "SSRF protection must parse URLs using urlsplit"
+
+    agent_fund = (REPO_ROOT / "security" / "agent-access-models" / "fundamentals.md").read_text(encoding="utf-8")
+    assert "Unknown/unhandled caveat MUST reject verification" in agent_fund or "fail-closed" in agent_fund, "Capability verification must enforce fail-closed caveat handling"
+
+    rust_fund = (REPO_ROOT / "system-design" / "rust" / "fundamentals.md").read_text(encoding="utf-8")
+    assert "SpscProducer" in rust_fund and "SpscConsumer" in rust_fund, "Rust SPSC queue must separate exclusive Producer and Consumer handles"
+

@@ -2,6 +2,13 @@
 
 **Objective**: Implement per-sample gradient clipping and calibrated Gaussian noise injection inside a custom PyTorch training loop.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `dwork-roth-dp-2014`, `abadi-dpsgd-2016`, `mironov-rdp-2017`
+- **Applicable Citations**:
+  - [The Algorithmic Foundations of Differential Privacy](https://www.cis.upenn.edu/~aaroth/Papers/privacybook.pdf) (2014)
+  - [Deep Learning with Differential Privacy](https://dl.acm.org/doi/10.1145/2976749.2978318) (2016)
+  - [Rényi Differential Privacy](https://ieeexplore.ieee.org/document/8049725) (2017)
+
 ---
 
 ## Problem Statement

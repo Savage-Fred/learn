@@ -44,28 +44,30 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::cell::UnsafeCell;
 
-pub struct SpscRingBuffer<T, const CAP: usize> {
+struct SpscRingBuffer<T, const CAP: usize> {
     buffer: [UnsafeCell<Option<T>>; CAP],
     head: AtomicUsize, // Read pointer (Consumer)
     tail: AtomicUsize, // Write pointer (Producer)
 }
 
-// Invariant: Safe to share across threads because SPSC enforces single writer and single reader
+// Invariant: The underlying buffer is Send and Sync, but direct access is private.
+// Soundness is enforced by splitting into exclusive non-Sync Producer and Consumer handles.
+unsafe impl<T: Send, const CAP: usize> Send for SpscRingBuffer<T, CAP> {}
 unsafe impl<T: Send, const CAP: usize> Sync for SpscRingBuffer<T, CAP> {}
 
-impl<T, const CAP: usize> SpscRingBuffer<T, CAP> {
-    pub fn new() -> Arc<Self> {
-        assert!(CAP > 0 && (CAP & (CAP - 1)) == 0, "Capacity must be power of two");
-        Arc::new(Self {
-            buffer: std::array::from_fn(|_| UnsafeCell::new(None)),
-            head: AtomicUsize::new(0),
-            tail: AtomicUsize::new(0),
-        })
-    }
+pub struct SpscProducer<T: Send, const CAP: usize> {
+    buffer: Arc<SpscRingBuffer<T, CAP>>,
+}
 
-    pub fn push(&self, item: T) -> Result<(), T> {
-        let tail = self.tail.load(Ordering::Relaxed);
-        let head = self.head.load(Ordering::Acquire); // Synchronize with consumer's head update
+pub struct SpscConsumer<T: Send, const CAP: usize> {
+    buffer: Arc<SpscRingBuffer<T, CAP>>,
+}
+
+// Neither Producer nor Consumer implements Sync; they cannot be called concurrently from multiple threads
+impl<T: Send, const CAP: usize> SpscProducer<T, CAP> {
+    pub fn push(&mut self, item: T) -> Result<(), T> {
+        let tail = self.buffer.tail.load(Ordering::Relaxed);
+        let head = self.buffer.head.load(Ordering::Acquire); // Synchronize with consumer's head update
 
         if tail - head >= CAP {
             return Err(item); // Buffer full
@@ -73,32 +75,44 @@ impl<T, const CAP: usize> SpscRingBuffer<T, CAP> {
 
         let idx = tail & (CAP - 1);
         unsafe {
-            *self.buffer[idx].get() = Some(item);
+            *self.buffer.buffer[idx].get() = Some(item);
         }
 
         // Release order ensures the item write is visible before tail pointer advances
-        self.tail.store(tail + 1, Ordering::Release);
+        self.buffer.tail.store(tail + 1, Ordering::Release);
         Ok(())
     }
+}
 
-    pub fn pop(&self) -> Option<T> {
-        let head = self.head.load(Ordering::Relaxed);
-        let tail = self.tail.load(Ordering::Acquire); // Synchronize with producer's tail update
+impl<T: Send, const CAP: usize> SpscConsumer<T, CAP> {
+    pub fn pop(&mut self) -> Option<T> {
+        let head = self.buffer.head.load(Ordering::Relaxed);
+        let tail = self.buffer.tail.load(Ordering::Acquire); // Synchronize with producer's tail update
 
         if head == tail {
             return None; // Buffer empty
         }
 
         let idx = head & (CAP - 1);
-        let item = unsafe { (*self.buffer[idx].get()).take() };
+        let item = unsafe { (*self.buffer.buffer[idx].get()).take() };
 
         // Release order ensures the read/take is complete before head pointer advances
-        self.head.store(head + 1, Ordering::Release);
+        self.buffer.head.store(head + 1, Ordering::Release);
         item
     }
 }
+
+pub fn make_spsc<T: Send, const CAP: usize>() -> (SpscProducer<T, CAP>, SpscConsumer<T, CAP>) {
+    assert!(CAP > 0 && (CAP & (CAP - 1)) == 0, "Capacity must be power of two");
+    let buf = Arc::new(SpscRingBuffer {
+        buffer: std::array::from_fn(|_| UnsafeCell::new(None)),
+        head: AtomicUsize::new(0),
+        tail: AtomicUsize::new(0),
+    });
+    (SpscProducer { buffer: buf.clone() }, SpscConsumer { buffer: buf })
+}
 ```
-**Analysis**: Demonstrates lock-free SPSC queue using UnsafeCell, power-of-two modulo masking, and Acquire/Release atomic memory ordering.
+**Analysis**: Demonstrates sound lock-free SPSC queue splitting into exclusive non-Sync Producer and Consumer handles, using Acquire/Release atomic ordering.
 
 ---
 

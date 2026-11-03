@@ -2,6 +2,12 @@
 
 **Objective**: Build a robust, generic Disjoint Set Union (DSU) data structure proving O(alpha(N)) amortized complexity.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `herlihy-shavit-2020`, `hnsw-malkov-2018`
+- **Applicable Citations**:
+  - [The Art of Multiprocessor Programming](https://www.sciencedirect.com/book/9780124159501/the-art-of-multiprocessor-programming) (2020)
+  - [Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs](https://ieeexplore.ieee.org/document/8594632) (2018)
+
 ---
 
 ## Problem Statement

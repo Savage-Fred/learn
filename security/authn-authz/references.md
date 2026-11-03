@@ -4,10 +4,10 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
 
 ## Citable Bibliography
 
-### Zanzibar: Google’s Flexible, Highly Available, Consistent Authorization System (2019)
-- **Authors**: Ruoming Pang, Ramakrishna Kotla, Sanjay Ghemawat, Mike Burrows
+### Zanzibar: Google’s Consistent, Global Authorization System (2019)
+- **Authors**: Ruoming Pang, Ramón Cáceres, Mike Burrows, Alex Chen, Pratik Fimat, Carl A. Waldspurger, Kevin Goff, Sanjeev Kumar, Abhishek Parmar, Victor Sandberg, Sneha Trivedi
 - **Type**: `paper`
-- **Canonical URL / DOI**: [https://research.google/pubs/pub48722/](https://research.google/pubs/pub48722/)
+- **Canonical URL / DOI**: [https://www.usenix.org/conference/atc19/presentation/pang](https://www.usenix.org/conference/atc19/presentation/pang)
 - **Role Relevance**: Track-3-Security, Track-1-SWE
 - **Core Invariants Extracted**:
   - External consistency eliminates the New-Enemy problem using Spanner timestamps and Zookies.
@@ -23,10 +23,10 @@ This curriculum grounds all concepts, exercises, and rubrics in peer-reviewed ac
 
 ```bibtex
 @inproceedings{pang2019zanzibar,
-  title={Zanzibar: Google's Flexible, Highly Available, Consistent Authorization System},
-  author={Pang, Ruoming and Kotla, Ramakrishna and Ghemawat, Sanjay and Burrows, Mike},
-  booktitle={USENIX Annual Technical Conference (ATC)},
-  pages={243--257},
+  title={Zanzibar: Google's Consistent, Global Authorization System},
+  author={Pang, Ruoming and C{\'a}ceres, Ram{\'o}n and Burrows, Mike and Chen, Alex and Fimat, Pratik and Waldspurger, Carl A and Goff, Kevin and Kumar, Sanjeev and Parmar, Abhishek and Sandberg, Victor and Trivedi, Sneha},
+  booktitle={USENIX Annual Technical Conference (ATC 19)},
+  pages={33--46},
   year={2019}
 }
 ```

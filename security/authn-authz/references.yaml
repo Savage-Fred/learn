@@ -1,18 +1,26 @@
 - id: google-zanzibar-2019
-  title: "Zanzibar: Google\u2019s Flexible, Highly Available, Consistent Authorization\
-    \ System"
+  title: "Zanzibar: Google\u2019s Consistent, Global Authorization System"
   authors:
   - Ruoming Pang
-  - Ramakrishna Kotla
-  - Sanjay Ghemawat
+  - "Ram\xF3n C\xE1ceres"
   - Mike Burrows
+  - Alex Chen
+  - Pratik Fimat
+  - Carl A. Waldspurger
+  - Kevin Goff
+  - Sanjeev Kumar
+  - Abhishek Parmar
+  - Victor Sandberg
+  - Sneha Trivedi
   year: 2019
   type: paper
-  canonical_url: https://research.google/pubs/pub48722/
+  canonical_url: https://www.usenix.org/conference/atc19/presentation/pang
   citation_bibtex: "@inproceedings{pang2019zanzibar,\n  title={Zanzibar: Google's\
-    \ Flexible, Highly Available, Consistent Authorization System},\n  author={Pang,\
-    \ Ruoming and Kotla, Ramakrishna and Ghemawat, Sanjay and Burrows, Mike},\n  booktitle={USENIX\
-    \ Annual Technical Conference (ATC)},\n  pages={243--257},\n  year={2019}\n}"
+    \ Consistent, Global Authorization System},\n  author={Pang, Ruoming and C{\\\
+    'a}ceres, Ram{\\'o}n and Burrows, Mike and Chen, Alex and Fimat, Pratik and Waldspurger,\
+    \ Carl A and Goff, Kevin and Kumar, Sanjeev and Parmar, Abhishek and Sandberg,\
+    \ Victor and Trivedi, Sneha},\n  booktitle={USENIX Annual Technical Conference\
+    \ (ATC 19)},\n  pages={33--46},\n  year={2019}\n}"
   key_invariants:
   - External consistency eliminates the New-Enemy problem using Spanner timestamps
     and Zookies.

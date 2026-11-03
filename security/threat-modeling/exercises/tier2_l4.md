@@ -2,6 +2,12 @@
 
 **Objective**: Analyze an enterprise RAG assistant indexing Google Drive documents, focusing on multi-tenant access control and indirect prompt injection.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `shostack-threat-modeling-2014`, `owasp-top-10-llm-2025`
+- **Applicable Citations**:
+  - [Threat Modeling: Designing for Security](https://www.wiley.com/en-us/Threat+Modeling%3A+Designing+for+Security-p-9781118809990) (2014)
+  - [OWASP Top 10 for Large Language Model Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (2025)
+
 ---
 
 ## Problem Statement

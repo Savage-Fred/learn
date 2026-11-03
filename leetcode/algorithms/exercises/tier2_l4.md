@@ -2,6 +2,12 @@
 
 **Objective**: Formulate maximum bipartite matching as a network flow problem and solve it using Dinic's algorithm.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `clrs-4th-ed-2022`, `kleinberg-tardos-2005`
+- **Applicable Citations**:
+  - [Introduction to Algorithms](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/) (2022)
+  - [Algorithm Design](https://www.pearson.com/en-us/subject-catalog/p/algorithm-design/P200000003260) (2005)
+
 ---
 
 ## Problem Statement

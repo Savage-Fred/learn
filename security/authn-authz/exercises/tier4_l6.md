@@ -2,6 +2,12 @@
 
 **Objective**: Architect a globally distributed authorization evaluation service that enforces Zanzibar external consistency (Zookies) across multi-region read replicas.
 
+## Grounded Sources & Curriculum References
+- **Source Reference IDs**: `google-zanzibar-2019`, `oauth-2-1-draft`
+- **Applicable Citations**:
+  - [Zanzibar: Google’s Consistent, Global Authorization System](https://www.usenix.org/conference/atc19/presentation/pang) (2019)
+  - [The OAuth 2.1 Authorization Framework](https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/) (2024)
+
 ---
 
 ## Problem Statement

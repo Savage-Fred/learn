@@ -41,29 +41,47 @@ Traditional SQL injection arose because developer code concatenated untrusted da
 ### Defensive Agent Tool Execution Proxy with Schema Validation and Dual-Control Gating
 ```python
 from typing import Callable, Dict, Any
-import re
+from urllib.parse import urlsplit
+import ipaddress
+import socket
 
 class PolicyViolation(Exception):
     pass
 
 class SecureToolProxy:
-    """Interceps agent tool calls enforcing parameter schemas, SSRF blocks, and HITL."""
+    """Intercepts agent tool calls enforcing parameter schemas, SSRF blocks, and HITL."""
     def __init__(self, human_approval_callback: Callable[[str, Dict[str, Any]], bool]):
         self.human_approval = human_approval_callback
-        self.disallowed_ip_patterns = [
-            re.compile(r"^127\."),
-            re.compile(r"^10\."),
-            re.compile(r"^192\.168\."),
-            re.compile(r"^169\.254\."), # Cloud metadata endpoint
-        ]
+
+    def is_private_or_loopback_destination(self, hostname: str) -> bool:
+        """Resolves hostname and checks against private, loopback, and link-local ranges."""
+        try:
+            # Check if hostname is direct IP literal
+            try:
+                ip = ipaddress.ip_address(hostname)
+                return ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved
+            except ValueError:
+                pass
+
+            # Resolve hostname to all associated IPs to prevent DNS rebinding
+            _, _, ips = socket.gethostbyname_ex(hostname)
+            for ip_str in ips:
+                ip = ipaddress.ip_address(ip_str)
+                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                    return True
+        except (socket.gaierror, ValueError):
+            return True  # Fail-closed on resolution failure
+        return False
 
     def execute_tool(self, tool_name: str, params: Dict[str, Any]) -> Dict[str, Any]:
         # 1. SSRF Boundary Enforcement for web fetching tools
         if tool_name == "fetch_url":
             url = params.get("url", "")
-            for pattern in self.disallowed_ip_patterns:
-                if pattern.search(url):
-                    raise PolicyViolation(f"SSRF violation: Access to private IP {url} blocked.")
+            parsed = urlsplit(url)
+            if not parsed.scheme or parsed.scheme not in ("http", "https"):
+                raise PolicyViolation(f"SSRF violation: Disallowed scheme in {url}")
+            if not parsed.hostname or self.is_private_or_loopback_destination(parsed.hostname):
+                raise PolicyViolation(f"SSRF violation: Access to private/loopback destination {url} blocked.")
 
         # 2. Dual-Control / Human-in-the-Loop Gate for irreversible actions
         high_risk_tools = {"send_email", "execute_refund", "delete_database_row"}
@@ -74,7 +92,7 @@ class SecureToolProxy:
 
         return {"status": "success", "tool": tool_name, "executed": True}
 ```
-**Analysis**: Demonstrates security controls implemented directly at the boundary of agent execution: SSRF protection and human-in-the-loop gating.
+**Analysis**: Demonstrates security controls implemented directly at the boundary of agent execution: robust DNS-resolved SSRF protection and human-in-the-loop gating.
 
 ---
 
