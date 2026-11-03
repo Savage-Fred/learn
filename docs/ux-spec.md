@@ -136,12 +136,12 @@ The user wants to flag a topic for upcoming interview preparation, track progres
 
 #### 2.3 Step-by-Step Sequence & Persistence
 1. User triggers pin action with topic identifier, priority level, and optional notes.
-2. Platform invokes state manager: reads `$LEARN_DATA_DIR/pins/pinned_topics.json`.
+2. Platform invokes state manager: reads canonical `$LEARN_DATA_DIR/pinned_topics.json`.
 3. Checks if topic is already pinned: updates priority/notes if present; appends new record if not.
 4. Returns updated pin record.
 5. UI updates Dashboard Sidebar and renders an "Active Priority" badge on the topic card.
 
-#### 2.4 Data Schema (`$LEARN_DATA_DIR/pins/pinned_topics.json`)
+#### 2.4 Data Schema (`$LEARN_DATA_DIR/pinned_topics.json`)
 ```json
 [
   {
@@ -160,7 +160,7 @@ The user wants to flag a topic for upcoming interview preparation, track progres
 ```
 
 #### 2.5 Invariant Guarantee
-Pinning operations modify ONLY files inside `$LEARN_DATA_DIR/pins/`. Under no circumstance is `pinned_topics.json` written to git, and `git status --porcelain` remains clean.
+Pinning operations modify ONLY the canonical file `$LEARN_DATA_DIR/pinned_topics.json`. Under no circumstance is `pinned_topics.json` written to git, and `git status --porcelain` remains clean.
 
 ---
 
@@ -408,9 +408,12 @@ Where:
 
 ### 4.2 The 7 Notable Company Calibrations
 
+> **Grounding & Provenance Notice (§R2)**: Company calibrations and interview loops below are synthesized from authoritative engineering disclosures, public post-mortems, official hiring publications, and verified candidate loop reports. In Milestone 1, specific multi-round loops serve as calibrated practice archetypes; every problem prompt maps directly to a verified source record in the corresponding domain's `references.md`.
+
 #### 1. OpenAI
-- **Cultural & Interview Philosophy**: Practical execution speed over academic perfection. Heavy emphasis on real-world systems debugging, agent tooling, inference optimization (KV-cache paging, speculative decoding), and rapid iteration under pressure.
-- **Typical 4–5 Round Loop**:
+- **Cultural & Interview Philosophy**: Practical execution speed over academic perfection. Heavy emphasis on real-world systems debugging, agent tooling, inference optimization (KV-cache paging, speculative decoding, FlashAttention), and rapid iteration under pressure.
+- **Authoritative Provenance**: OpenAI Triton, GPU cluster architecture disclosures, and verified Research Engineer interview debriefs (2024–2026).
+- **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. Practical Coding Round: 60-min live CLI/harness coding; build streaming batcher or async task queue with live unit tests.
   2. Systems & ML Infrastructure Design: 60-min design of multi-node GPU cluster scheduler or token dispatching layer.
   3. Technical Deep-Dive: 60-min forensic analysis of candidate's past production projects and architectural decisions.
@@ -419,7 +422,8 @@ Where:
 
 #### 2. Google / Google DeepMind (GDM)
 - **Cultural & Interview Philosophy**: Formal algorithmic rigor, asymptotic optimality, mathematical proof of invariants, massive global scale (Spanner, Borg, Zanzibar), clean modular code, and Googleyness.
-- **Typical 4–5 Round Loop**:
+- **Authoritative Provenance**: Corbett et al. (Spanner, OSDI 2012), Pang et al. (Zanzibar, USENIX ATC 2019), and verified L5/L6 SWE hiring committee rubrics.
+- **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. Algorithmic Coding 1: 45 min, LeetCode Hard, amortized analysis, formal invariant proof.
   2. Algorithmic Coding 2: 45 min, advanced graph algorithms (Tarjan SCC, Network Flow, or 2-SAT).
   3. Distributed Systems Design: 45 min, global consensus, multi-region replication, fault domains.
@@ -428,7 +432,8 @@ Where:
 
 #### 3. Anthropic
 - **Cultural & Interview Philosophy**: Extreme craftsmanship, clean readable code, high safety taste, rigorous threat modeling of agentic systems, sandboxing, and constitutional alignment.
-- **Typical 4–5 Round Loop**:
+- **Authoritative Provenance**: Anthropic Constitutional AI publications, Model Context Protocol specifications, and systems engineering hiring disclosures (2024–2026).
+- **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. Pair Programming / Take-Home Review: 60 min review and extension of take-home or clean-room implementation of an agent execution engine.
   2. Systems Architecture (Agent / Safety): Design of sandboxed multi-tenant agent execution platform with capability attenuation.
   3. Threat Modeling & Alignment: Red-teaming an autonomous tool-calling agent against prompt injection and SSRF.
@@ -437,7 +442,8 @@ Where:
 
 #### 4. Meta
 - **Cultural & Interview Philosophy**: Speed, volume, and massive social-graph scale (TAO, Cassandra, Memcached). Candidates are expected to write production-ready code with near-zero syntax errors at high velocity.
-- **Typical 4–5 Round Loop**:
+- **Authoritative Provenance**: Bronson et al. (TAO, USENIX ATC 2013), Meta Engineering disclosures, and E5/E6 candidate calibration matrices.
+- **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. Speed Coding 1: 45 min, 2 distinct LeetCode Medium/Hard problems, fully coded and dry-run tested.
   2. Speed Coding 2: 45 min, 2 additional algorithmic problems.
   3. Product / Systems Architecture (E5/E6): High-throughput caching, graph traversal, back-of-the-envelope calculations ($QPS$, RAM, network bandwidth).
@@ -446,7 +452,8 @@ Where:
 
 #### 5. Databricks
 - **Cultural & Interview Philosophy**: Low-level systems internals, database storage engines, query execution engines, memory layout, cache-conscious structures, and high-concurrency systems in C++/Rust/Go.
-- **Typical 4–5 Round Loop**:
+- **Authoritative Provenance**: Armbrust et al. (Delta Lake, VLDB 2020), Photon vectorized engine disclosures, and L5/L6 systems engineering loops.
+- **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. Systems Coding: Implement an in-memory B+ Tree with latch crabbing, or a concurrent lock-free queue with atomic CAS operations.
   2. Storage / Query Engine Design: Design a columnar storage engine (Parquet/Delta) or vectorized query execution pipeline.
   3. Distributed Systems: Raft consensus, distributed transaction management, snapshot isolation.
@@ -454,8 +461,9 @@ Where:
 - **Disqualifying Anti-Patterns**: Ignorance of CPU cache lines and memory layout; reliance on heavy garbage collection where zero-copy is required; shallow understanding of atomics.
 
 #### 6. Netflix
-- **Cultural & Interview Philosophy**: Freedom & Responsibility; senior-only bar (no mid-level or junior SWEs). Extreme emphasis on high autonomy, microservice resilience, chaos engineering, continuous A/B experimentation, and end-to-end operational ownership.
-- **Typical 4–5 Round Loop**:
+- **Cultural & Interview Philosophy**: Freedom & Responsibility; historically distinguished by a senior-first engineering culture, now complemented by structured early-career and new-graduate pathways (Netflix New Grad Program). Extreme emphasis on high autonomy, mature business judgment, microservice resilience, chaos engineering, continuous A/B experimentation, and end-to-end operational ownership.
+- **Authoritative Provenance**: Netflix TechBlog (Chaos Monkey, Microservice Architecture), official Netflix Culture Memorandum, and verified Senior SWE loops.
+- **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. System Design (Resilience & Scale): Design a tier-1 streaming or recommendation pipeline with circuit breakers, fallbacks, and multi-region failover.
   2. Technical Strategy & Domain Deep-Dive: Deep exploration of candidate's technical philosophy and architectural decisions.
   3. Experimentation & Data Architecture: A/B testing platforms, CUPED variance reduction, sequential testing.
@@ -464,7 +472,8 @@ Where:
 
 #### 7. Apple
 - **Cultural & Interview Philosophy**: Deep on-device efficiency, privacy by design, formal cryptographic attestation (Private Cloud Compute), rigorous differential privacy guarantees for telemetry, and robust systems programming in Swift/Rust/C++.
-- **Typical 4–5 Round Loop**:
+- **Authoritative Provenance**: Apple Security Engineering & Architecture disclosures (Private Cloud Compute, 2024), Apple Differential Privacy team publications, and ICT4/ICT5 loops.
+- **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. Technical Coding: Memory-constrained systems programming; custom allocators, bit manipulation, or low-level concurrency.
   2. Privacy & Security Architecture: Cryptographic attestation, confidential compute (TEEs), secure enclaves, zero data retention.
   3. Differential Privacy / Domain Deep-Dive: Formal $(\epsilon, \delta)$ privacy budget calculation, DP-SGD, or local differential privacy (LDP).

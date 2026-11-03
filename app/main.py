@@ -1,7 +1,7 @@
 """FastAPI application entry point and CLI runner for Savage-Fred/learn."""
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.config import settings
@@ -21,14 +21,18 @@ async def health_check():
 
 
 @app.get("/api/v1/status")
-async def platform_status():
+async def platform_status(request: Request):
     """Platform configuration and reachability status."""
+    client_host = request.client.host if request.client else "unknown"
+    is_trusted = client_host in ("127.0.0.1", "::1", "localhost", "testclient")
+    exposed_data_dir = str(settings.data_dir) if is_trusted else "[protected]"
+
     return {
         "status": "operational",
         "host": settings.host,
         "port": settings.port,
         "tailnet_reachability": f"http://{settings.magic_dns}:{settings.port}",
-        "data_dir": str(settings.data_dir),
+        "data_dir": exposed_data_dir,
         "use_mock_llm": settings.use_mock_llm,
         "topics_available": [
             "leetcode",

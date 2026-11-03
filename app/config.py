@@ -37,7 +37,10 @@ class Settings(BaseModel):
     )
 
     # Out-of-git personal state directory (Strict Invariant §R4)
-    data_dir: Path = Field(default_factory=resolve_default_data_dir)
+    data_dir: Path = Field(
+        default_factory=resolve_default_data_dir,
+        validate_default=True,
+    )
 
     @field_validator("data_dir")
     @classmethod

@@ -310,15 +310,18 @@ flowchart TD
     ExecAPI --> APISuccess{HTTP 200 &<br/>Valid Payload?}
     APISuccess -- Yes --> ReturnAPISuccess([Emit Response & Log Metered Cost])
     
-    Tier2Check -- No --> Tier3Mock[Invoke Deterministic Mock Harness]
-    APISuccess -- No / RateLimit --> Tier3Mock
+    Tier2Check -- No --> ErrorOrMock{Is LEARN_USE_MOCK_LLM=1<br/>or Offline Test Mode?}
+    APISuccess -- No / RateLimit --> ErrorOrMock
     
-    Tier3Mock --> ReturnMock([Emit Deterministic Schema-Valid Response])
+    ErrorOrMock -- Yes --> Tier3Mock[Invoke Deterministic Mock Harness]
+    ErrorOrMock -- No --> Return503([Return ProviderUnavailableError 503<br/>Protect User Ratings from Simulation])
+    
+    Tier3Mock --> ReturnMock([Emit Deterministic Schema-Valid Mock Response])
 ```
 
 1. **Tier 1 (Local Subscription CLI)**: Dispatches to `claude`, `codex`, or `agy`. Returns zero metered cost.
 2. **Tier 2 (Direct API Key Fallback)**: If CLI binary is missing, unauthenticated, or fails repeatedly, falls back to direct HTTPS calls via `httpx` using `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY`.
-3. **Tier 3 (Deterministic Mock Harness)**: Activated when `LEARN_USE_MOCK_LLM=1` or when all external calls fail. Guarantees 100% offline development, sub-millisecond unit testing, and reliable CI test suite execution.
+3. **Tier 3 (Deterministic Mock Harness)**: Activated strictly when `LEARN_USE_MOCK_LLM=1` or in explicit offline testing environments. In production mode, unexpected provider failures raise a `ProviderUnavailableError` (HTTP 503) rather than silently executing mock evaluations, preventing synthetic mock responses from corrupting verified user proficiency ratings or generating artificial hiring decisions.
 
 ### 5.4 Cost & Token Telemetry Schema
 
@@ -687,7 +690,7 @@ Enables real-time bidirectional streaming for conversational mock interviews:
 
 ## 9. Model Context Protocol (MCP) Server Specification
 
-The MCP server implements JSON-RPC 2.0 and exposes 8 specialized tools to agent harnesses.
+The MCP server implements JSON-RPC 2.0 and exposes 10 specialized tools to agent harnesses, with explicit session initialization semantics for quizzes and mock interviews.
 
 ### 9.1 Tool Inventory
 
@@ -699,8 +702,10 @@ classDiagram
         +learn_get_pinned_topics()
         +learn_record_durable_learning(topic_id, title, mental_model, invariants, references, code)
         +learn_query_proficiency_gaps(role_track, target_company)
-        +learn_run_adaptive_exercise_turn(exercise_id, user_response, session_id)
-        +learn_run_mock_interview_turn(session_id, mode, turn_type, message)
+        +learn_start_adaptive_exercise(topic_id, tier)
+        +learn_run_adaptive_exercise_turn(exercise_id, user_response)
+        +learn_start_mock_interview(role_track, company, topic, timing_mode, assistance_mode, probing_mode)
+        +learn_run_mock_interview_turn(session_id, message, turn_type)
         +learn_analyze_job_description(job_description_text, resume_text)
     }
 ```
@@ -710,9 +715,11 @@ classDiagram
 3. **`learn_get_pinned_topics`**: Retrieve active priorities, target dates, and gap notes.
 4. **`learn_record_durable_learning`**: Synthesize and write structured markdown with valid frontmatter to root topic directory.
 5. **`learn_query_proficiency_gaps`**: Compute deltas between user profile and calibrated company bars (L4–L6).
-6. **`learn_run_adaptive_exercise_turn`**: Submit problem response, execute rubric grading, update rating, scale difficulty.
-7. **`learn_run_mock_interview_turn`**: Drive conversational mock interview turn in `hints` or `no-hints` mode.
-8. **`learn_analyze_job_description`**: Ingest raw job description text, extract core competencies, score match against resume, generate tailored interview loop.
+6. **`learn_start_adaptive_exercise`**: Initialize an adaptive exercise session for a given topic and tier, returning `exercise_id`, problem prompt, and invariant objectives.
+7. **`learn_run_adaptive_exercise_turn`**: Submit problem response, execute rubric grading, update rating in `$LEARN_DATA_DIR/user_profile.json`, and scale difficulty.
+8. **`learn_start_mock_interview`**: Initialize a full-scale mock interview session with configured role track, company, topic, and orthogonal modes (`timing_mode`, `assistance_mode`, `probing_mode`), returning `session_id` and the initial interviewer problem statement.
+9. **`learn_run_mock_interview_turn`**: Advance conversational mock interview turn with candidate dialogue, code submission, or hint request.
+10. **`learn_analyze_job_description`**: Ingest raw job description text, extract core competencies, score match against resume, generate tailored interview loop.
 
 ---
 

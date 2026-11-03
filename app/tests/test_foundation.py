@@ -102,6 +102,36 @@ def test_rejection_of_in_repo_data_dir():
 
 
 @pytest.mark.unit
+def test_rejection_of_in_repo_data_dir_via_env(monkeypatch):
+    """Verify Settings rejects in-repo LEARN_DATA_DIR via environment variable (§R4)."""
+    repo_root = settings.repo_root.resolve()
+    monkeypatch.setenv("LEARN_DATA_DIR", str(repo_root / "private_state"))
+    with pytest.raises(ValueError, match="must not be located inside repository root"):
+        Settings()
+
+
+@pytest.mark.unit
+def test_rejection_of_in_repo_xdg_data_home_via_env(monkeypatch):
+    """Verify Settings rejects in-repo XDG_DATA_HOME via environment variable (§R4)."""
+    repo_root = settings.repo_root.resolve()
+    monkeypatch.delenv("LEARN_DATA_DIR", raising=False)
+    monkeypatch.setenv("XDG_DATA_HOME", str(repo_root / "xdg"))
+    with pytest.raises(ValueError, match="must not be located inside repository root"):
+        Settings()
+
+
+@pytest.mark.asyncio
+async def test_api_status_endpoint_non_loopback_protects_data_dir():
+    """Verify non-loopback clients do not receive raw local state path."""
+    transport = ASGITransport(app=fastapi_app, client=("192.168.1.50", 12345))
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.get("/api/v1/status")
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload.get("data_dir") == "[protected]"
+
+
+@pytest.mark.unit
 def test_clean_repository_invariant(tmp_path: Path):
     """Verify .gitignore rules isolate personal state inside an isolated temporary git repo.
 
