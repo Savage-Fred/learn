@@ -17,13 +17,20 @@ def resolve_default_data_dir() -> Path:
 class Settings(BaseModel):
     """Platform settings resolved from environment variables."""
 
-    # Server binding
-    host: str = Field(default_factory=lambda: os.getenv("LEARN_HOST", "0.0.0.0"))
+    # Server binding (defaults to loopback for security; opt-in non-loopback via LEARN_HOST=0.0.0.0)
+    host: str = Field(default_factory=lambda: os.getenv("LEARN_HOST", "127.0.0.1"))
     port: int = Field(default_factory=lambda: int(os.getenv("LEARN_PORT", "8795")))
 
-    # Tailscale integration
-    tailscale_ip: str = Field(default="100.64.162.123")
-    magic_dns: str = Field(default="will-ubuntu-26.tailacca87.ts.net")
+    # Tailscale & Network integration (environment-driven; no hardcoded machine identifiers)
+    tailscale_ip: str | None = Field(
+        default_factory=lambda: os.getenv("LEARN_TAILSCALE_IP")
+    )
+    magic_dns: str | None = Field(
+        default_factory=lambda: os.getenv("LEARN_MAGIC_DNS")
+    )
+    api_token: str | None = Field(
+        default_factory=lambda: os.getenv("LEARN_API_TOKEN")
+    )
 
     # Mock LLM toggle
     use_mock_llm: bool = Field(
@@ -31,9 +38,11 @@ class Settings(BaseModel):
         in ("1", "true", "yes")
     )
 
-    # Repository paths
+    # Repository paths (supports explicit LEARN_REPO_ROOT override for non-editable installations)
     repo_root: Path = Field(
-        default_factory=lambda: Path(__file__).parent.parent.resolve()
+        default_factory=lambda: Path(
+            os.getenv("LEARN_REPO_ROOT", str(Path(__file__).parent.parent.resolve()))
+        ).resolve()
     )
 
     # Out-of-git personal state directory (Strict Invariant §R4)
@@ -47,17 +56,13 @@ class Settings(BaseModel):
     def validate_data_dir_outside_repo(cls, v: Path) -> Path:
         """Enforce §R4 invariant: personal state directory must strictly reside outside repository root."""
         resolved = v.expanduser().resolve()
-        repo_root = Path(__file__).parent.parent.resolve()
-        try:
-            resolved.relative_to(repo_root)
+        repo_root = Path(
+            os.getenv("LEARN_REPO_ROOT", str(Path(__file__).parent.parent.resolve()))
+        ).resolve()
+        if resolved.is_relative_to(repo_root):
             raise ValueError(
                 f"Personal state directory {resolved} must not be located inside repository root {repo_root} (§R4 invariant)"
             )
-        except ValueError as e:
-            if "must not be located" in str(e):
-                raise
-            # relative_to raises ValueError if resolved is not relative to repo_root (which is required)
-            pass
         return resolved
 
     @property
@@ -66,14 +71,11 @@ class Settings(BaseModel):
         return self.repo_root
 
     def ensure_data_directories(self) -> None:
-        """Create necessary subdirectories in out-of-git data directory."""
+        """Create necessary subdirectories in canonical out-of-git data directory."""
         self.data_dir.mkdir(parents=True, exist_ok=True)
         (self.data_dir / "sessions").mkdir(parents=True, exist_ok=True)
-        (self.data_dir / "interviews").mkdir(parents=True, exist_ok=True)
         (self.data_dir / "resumes").mkdir(parents=True, exist_ok=True)
         (self.data_dir / "telemetry").mkdir(parents=True, exist_ok=True)
-        (self.data_dir / "pins").mkdir(parents=True, exist_ok=True)
-        (self.data_dir / "ratings").mkdir(parents=True, exist_ok=True)
 
 
 # Global settings instance

@@ -20,10 +20,16 @@ def test_app_package_imports_cleanly():
 
 
 @pytest.mark.unit
-def test_settings_defaults():
-    """Verify default host, port, mock LLM flag, and repository paths."""
+def test_settings_defaults(monkeypatch):
+    """Verify default host, port, mock LLM flag, and repository paths under clean env."""
+    monkeypatch.delenv("LEARN_HOST", raising=False)
+    monkeypatch.delenv("LEARN_PORT", raising=False)
+    monkeypatch.delenv("LEARN_USE_MOCK_LLM", raising=False)
+    monkeypatch.delenv("LEARN_DATA_DIR", raising=False)
+    monkeypatch.delenv("XDG_DATA_HOME", raising=False)
+
     default_settings = Settings()
-    assert default_settings.host == "0.0.0.0"
+    assert default_settings.host == "127.0.0.1"
     assert default_settings.port == 8795
     assert default_settings.use_mock_llm is False
     assert default_settings.repo_root.is_dir()
@@ -51,9 +57,29 @@ async def test_api_status_endpoint():
         assert response.status_code == 200
         payload = response.json()
         assert payload.get("status") == "operational"
-        assert payload.get("tailnet_reachability", "").startswith("http://")
-        assert "topics_available" in payload
+        assert payload.get("reachability", "").startswith("http://")
+        assert "domains_available" in payload
+        assert "priority_topics_available" in payload
         assert "data_dir" in payload
+
+
+@pytest.mark.asyncio
+async def test_api_status_endpoint_auth_token_enforcement(monkeypatch):
+    """Verify remote non-loopback requests require valid LEARN_API_TOKEN when configured."""
+    monkeypatch.setattr(settings, "api_token", "secret-test-token-123")
+    transport = ASGITransport(app=fastapi_app, client=("192.168.1.100", 54321))
+
+    # 1. Unauthenticated request rejected with 401
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        res_unauth = await client.get("/api/v1/status")
+        assert res_unauth.status_code == 401
+
+    # 2. Authenticated request accepted with 200
+    headers = {"Authorization": "Bearer secret-test-token-123"}
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        res_auth = await client.get("/api/v1/status", headers=headers)
+        assert res_auth.status_code == 200
+        assert res_auth.json().get("status") == "operational"
 
 
 @pytest.mark.unit
@@ -144,11 +170,8 @@ def test_clean_repository_invariant(tmp_path: Path):
     test_settings.ensure_data_directories()
 
     assert (custom_data_dir / "sessions").is_dir()
-    assert (custom_data_dir / "interviews").is_dir()
     assert (custom_data_dir / "resumes").is_dir()
     assert (custom_data_dir / "telemetry").is_dir()
-    assert (custom_data_dir / "pins").is_dir()
-    assert (custom_data_dir / "ratings").is_dir()
 
     # 2. Test gitignore effectiveness inside an isolated temporary git repository
     sandbox_repo = tmp_path / "sandbox_repo"

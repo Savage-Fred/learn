@@ -7,31 +7,31 @@
 # ------------------------------------------------------------------------------
 # The platform persists all personal progress, ratings, interview logs, and
 # resumes strictly outside git in $LEARN_DATA_DIR or ~/.local/share/learn/.
-# The rules below prevent accidental commit if state is directed locally.
-personal_data/
-local_data/
-data/
-.data/
-learn_data/
-.learn_data/
-user_state/
-local_state/
+# Anchored to repository root to prevent collisions with nested topic curricula.
+/personal_data/
+/local_data/
+/data/
+/.data/
+/learn_data/
+/.learn_data/
+/user_state/
+/local_state/
 
-# Personal state files and database artifacts
-user_profile.json
-pinned_topics.json
-pins/
-ratings/
-sessions/
-interviews/
-resumes/
-telemetry/
-*.jsonl
-*.sqlite
-*.sqlite3
-*.db
-*.db-journal
-*.db-wal
+# Personal state files and database artifacts (anchored to root)
+/user_profile.json
+/pinned_topics.json
+/pins/
+/ratings/
+/sessions/
+/interviews/
+/resumes/
+/telemetry/
+/*.jsonl
+/*.sqlite
+/*.sqlite3
+/*.db
+/*.db-journal
+/*.db-wal
 
 # ------------------------------------------------------------------------------
 # 2. Git Worktrees

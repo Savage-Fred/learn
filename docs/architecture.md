@@ -365,7 +365,7 @@ graph LR
         subgraph StandardArtifacts [5 Standard Artifacts Per Topic]
             R1[README.md]
             R2[fundamentals.md]
-            R3[references.md]
+            R3[references.yaml]
             R4[rubric.md]
             R5[exercises/*.md]
         end
@@ -392,21 +392,37 @@ graph LR
 
 ### 6.1 Git-Versioned Knowledge Plane
 
-Located at the repository root across 4 domains and 11 priority topics:
-- `leetcode/`: `pythonic-patterns/`, `algorithms/`, `data-structures/`
-- `system-design/`: `statistics/`, `rust/`, `go/`
-- `security/`: `authn-authz/`, `threat-modeling/`, `agent-access-models/`
-- `privacy-engineering/`: `pets-for-ai/`, `differential-privacy/`
+Curriculum content resides in dedicated top-level directories at the repository root, cleanly separated from the `app/` platform engine. The repository contains the 4 broad domain directories and the 11 dedicated priority topic directories:
 
-#### Durable Learning Markdown Frontmatter Standard
-When rabbit holes or on-demand sessions are distilled, they are written directly to `<domain>/<topic>/learnings/` adhering to this schema:
+1. **Broad Domains**:
+   - `leetcode/`: General algorithmic paradigms and coding benchmarks.
+   - `system-design/`: General systems architecture, scaling topologies, and failure modes.
+   - `security/`: General security fundamentals, defense-in-depth, and perimeter security.
+   - `privacy-engineering/`: General data protection, regulatory invariants, and compliance models.
+
+2. **Dedicated Top-Level Priority Topic Roots**:
+   - `pythonic-coding-patterns/`: Protocols, async generators, descriptors, and zero-copy optimization.
+   - `masters-algorithms/`: Dynamic programming state space reduction, convex hull trick, network flow (Dinic), 2-SAT.
+   - `data-structures/`: B+ Trees, lock-free ring buffers, cache-conscious structures, segment trees.
+   - `modern-authn-authz/`: Zanzibar relationship-based access control (ReBAC), SPIFFE/SPIRE, OAuth2 token exchange.
+   - `pets-for-ai/`: Confidential compute (TEEs, Nitro Enclaves, Apple PCC), SMPC, remote attestation.
+   - `threat-modeling/`: STRIDE, PASTA, cloud trust boundaries, privilege escalation.
+   - `agent-access-models/`: Least-privilege tool execution, sandboxed microVMs, prompt injection mitigation.
+   - `statistics-for-data-analysis/`: Sequential testing, CUPED variance reduction, bootstrap estimation, latency percentiles.
+   - `rust/`: Ownership, lifetimes, atomic memory ordering, unsafe invariants, FFI.
+   - `go/`: GMP scheduler internals, channel synchronization, singleflight, memory model.
+   - `modern-differential-privacy/`: (ε, δ)-DP composition bounds, DP-SGD, Moments Accountant, Rényi DP.
+
+#### Durable Learning Markdown Standard & Privacy Redaction
+When exploratory sessions or interview debriefs are distilled, the platform writes a structured Markdown note to `<topic_dir>/learnings/<id>.md`.
+- **Pre-Save Redaction**: Prior to saving, the distillation engine scrubs candidate PII, candidate resume snippets, and company-confidential notes.
+- **Write-Only Semantics**: The platform generates and writes the markdown file to disk for user review; the platform server NEVER executes autonomous git commits on the active branch.
 
 ```yaml
 ---
 id: "learn-20261103-differential-privacy-k3b9"
 title: "Renyi Differential Privacy for Iterative Gradient Sanitization"
-topic: "differential-privacy"
-domain: "privacy-engineering"
+topic: "modern-differential-privacy"
 target_level: "L6"
 invariants_covered:
   - "Rényi divergence order alpha privacy composition bounds"
@@ -426,15 +442,16 @@ source_trigger: "on_demand_deep_dive"
 
 ### 6.2 Grounded Data Retrieval & Question Curation Architecture (§R2)
 
-To satisfy Requirement §R2, all topic curricula, adaptive exercises, and mock interview problems are grounded in authentic, verified interview loops and authoritative academic/engineering sources. The platform rejects unanchored, synthetic problem prompts.
+To satisfy Requirement §R2, all topic curricula, adaptive exercises, and mock interview problems are grounded in authoritative academic literature, engineering standards (RFCs), and public engineering disclosures.
+
+> **Pedagogical Archetype Notice**: Mock interview loops and problem prompts represent calibrated practice archetypes derived from published engineering papers and public disclosures. Technical citations cite authoritative literature, while interview questions map to these foundational sources.
 
 ```mermaid
 flowchart TD
     subgraph Sources [Authoritative Source Corpus]
         Papers[Academic Papers: arXiv, IEEE, ACM]
-        EngBlogs[Company Engineering Blogs: Netflix, Meta, OpenAI]
+        EngBlogs[Company Engineering Disclosures: Netflix, Meta, OpenAI]
         RFCs[Standards & Specifications: RFCs, IETF]
-        Loops[Verified Recent L4-L6 Interview Loops]
     end
 
     subgraph Pipeline [Ingestion & Curation Pipeline]
@@ -445,10 +462,10 @@ flowchart TD
     end
 
     subgraph RepoArtifacts [Curriculum Knowledge Base]
-        Refs[<domain>/<topic>/references.md]
-        Fund[<domain>/<topic>/fundamentals.md]
-        Exs[<domain>/<topic>/exercises/*.md]
-        Rubrics[<domain>/<topic>/rubric.md]
+        Refs[<topic>/references.yaml]
+        Fund[<topic>/fundamentals.md]
+        Exs[<topic>/exercises/*.md]
+        Rubrics[<topic>/rubric.md]
     end
 
     Sources --> Ingest --> Verify --> Extract --> Link
@@ -458,40 +475,62 @@ flowchart TD
     Link --> Exs
 ```
 
-#### 6.2.1 Source Provenance Contract (`references.md`)
-Every entry in a topic's `references.md` adheres to a strict machine-parsable schema with complete attribution and verification metadata:
+#### 6.2.1 Source Provenance Contract (`references.yaml`)
+Every entry in a topic's `references.yaml` adheres to a strict machine-parsable schema with complete attribution and verification metadata:
+
+```yaml
+- source_id: "src-2017-mironov-rdp"
+  title: "Rényi Differential Privacy"
+  author_institution: "Ilya Mironov / Microsoft Research"
+  publication_date: "2017-05-22"
+  url: "https://arxiv.org/abs/1702.07476"
+  retrieved_at: "2026-11-03T06:00:00Z"
+  verification_status: "peer_reviewed" # peer_reviewed | company_verified | community_validated
+  primary_topic: "modern-differential-privacy"
+  target_levels: ["L5", "L6"]
+  key_invariants_extracted:
+    - "Rényi divergence order alpha privacy composition bounds"
+    - "Subsampled Gaussian mechanism amplification"
+
+- source_id: "src-2019-google-zanzibar"
+  title: "Zanzibar: Google's Consistent, Global Authorization System"
+  author_institution: "Ruoming Pang et al. / Google"
+  publication_date: "2019-06-01"
+  url: "https://research.google/pubs/pub48190/"
+  retrieved_at: "2026-11-03T06:00:00Z"
+  verification_status: "peer_reviewed"
+  primary_topic: "modern-authn-authz"
+  target_levels: ["L5", "L6"]
+  key_invariants_extracted:
+    - "External consistency via Spanner commit timestamps eliminates New-Enemy problem"
+    - "Zookies encode minimum snapshot evaluation time"
+```
+
+#### 6.2.2 Exercise Specification Schema (`exercises/<exercise_id>.md`)
+Every exercise links directly to one or more verified source IDs from `references.yaml`:
 
 ```yaml
 ---
-source_id: "src-2026-mironov-rdp"
-title: "Rényi Differential Privacy"
-author_institution: "Ilya Mironov / Microsoft Research"
-publication_date: "2017-05-22"
-url: "https://arxiv.org/abs/1702.07476"
-retrieved_at: "2026-11-03T06:00:00Z"
-verification_status: "peer_reviewed" # peer_reviewed | company_verified | community_validated
-primary_domain: "privacy-engineering"
-topic: "differential-privacy"
-target_levels: ["L5", "L6"]
-companies_tested: ["Apple", "Google", "OpenAI"]
-key_invariants_extracted:
-  - "Rényi divergence order alpha privacy composition bounds"
-  - "Subsampled Gaussian mechanism amplification"
-interview_question_mappings:
-  - question_id: "ex-dp-01"
-    description: "Compute privacy budget epsilon after 1000 rounds of DP-SGD under RDP"
-    target_company: "Apple"
-    target_level: "L6"
-  - question_id: "mock-apple-04"
-    description: "Design Private Cloud Compute telemetry pipeline with local DP"
-    target_company: "Apple"
-    target_level: "L6"
+exercise_id: "ex-dp-01"
+title: "DP-SGD Gradient Sanitization with RDP Accounting"
+topic: "modern-differential-privacy"
+tier: 3
+target_level: "L5"
+source_ids:
+  - "src-2017-mironov-rdp"
+invariants_tested:
+  - "L2 gradient clipping bound"
+  - "Rényi DP composition under subsampled Gaussian mechanism"
+tags: ["differential-privacy", "pytorch", "gradient-clipping"]
 ---
+
+# Problem Statement
+...
 ```
 
-#### 6.2.2 Curation & Validation Invariants
-1. **Provenance Mandatory**: Every problem prompt in `<domain>/<topic>/exercises/` and every mock interview scenario MUST contain a valid `source_id` referencing a verified entry in `references.md`.
-2. **Attribution Integrity**: Questions cite target companies, tested levels (L4–L6), and verified dates to prevent stale or hallucinated interview questions.
+#### 6.2.3 Curation & Validation Invariants
+1. **Provenance Mandatory**: Every problem prompt in `<topic>/exercises/` MUST contain a valid `source_ids` list referencing active entries in `references.yaml`.
+2. **Attribution Integrity**: Questions link directly to axiomatic literature and verified architectural specifications.
 3. **Automated Validation**: Automated CI checks inspect topic directories to ensure 100% of problem sets resolve to valid, active source citations.
 
 ---
@@ -613,9 +652,9 @@ def resolve_learn_data_dir() -> Path:
 
 ```mermaid
 graph TB
-    subgraph HostNode [Host Machine: will-ubuntu-26]
+    subgraph HostNode [Host Machine]
         subgraph TailscaleInterface [Tailscale Mesh Interface (tailscale0)]
-            TS_IP["Tailscale IP: 100.64.162.123<br/>MagicDNS: will-ubuntu-26.tailacca87.ts.net"]
+            TS_IP["Tailscale IP: $LEARN_TAILSCALE_IP<br/>MagicDNS: $LEARN_MAGIC_DNS"]
         end
         
         subgraph LoopbackInterface [Loopback Interface (lo)]
@@ -623,17 +662,17 @@ graph TB
         end
 
         subgraph ServerProcess [Learn Server Process (app/main.py)]
-            Listener["Uvicorn Server<br/>Host: LEARN_HOST (0.0.0.0)<br/>Port: LEARN_PORT (8795)"]
-            CORSFilter["CORS & Host Header Validator<br/>Allowed Hosts: localhost, 127.0.0.1, 100.64.162.123, *.ts.net"]
+            Listener["Uvicorn Server<br/>Host: LEARN_HOST (default: 127.0.0.1)<br/>Port: LEARN_PORT (default: 8795)"]
+            AuthFilter["Authentication & Network Boundary Filter<br/>Local Loopback: Pre-authorized<br/>Remote/Tailnet: LEARN_API_TOKEN Required"]
             APIEndpoints["REST & WebSocket API Endpoints"]
-            SSEEndpoint["MCP SSE Endpoint (/mcp/sse)"]
+            MCPEndpoint["MCP Server Endpoint (stdio / Streamable HTTP)"]
         end
     end
 
     subgraph ExternalClients [Clients on Tailnet Mesh]
-        Laptop["MacBook / Laptop<br/>(Tailnet Node)"]
-        Phone["Mobile Device<br/>(Tailnet Node)"]
-        RemoteAgent["Remote Agent<br/>(Claude Code / Cursor on Tailnet)"]
+        Laptop["Client Laptop (Tailnet Node)"]
+        Phone["Mobile Device (Tailnet Node)"]
+        RemoteAgent["Remote Agent (Claude / Codex on Tailnet)"]
     end
 
     subgraph LocalClients [Local Clients]
@@ -642,20 +681,21 @@ graph TB
     end
 
     LocalBrowser -->|HTTP: 127.0.0.1:8795| Listener
-    LocalCLI -->|stdio JSON-RPC| APIEndpoints
-    Laptop -->|HTTPS / HTTP: 100.64.162.123:8795| Listener
-    Phone -->|HTTPS / HTTP: will-ubuntu-26.tailacca87.ts.net:8795| Listener
-    RemoteAgent -->|SSE: /mcp/sse| SSEEndpoint
+    LocalCLI -->|stdio JSON-RPC| MCPEndpoint
+    Laptop -->|HTTP / Tailscale Serve + Token| Listener
+    Phone -->|HTTP / Tailscale Serve + Token| Listener
+    RemoteAgent -->|Streamable HTTP + Token| MCPEndpoint
 
-    Listener --> CORSFilter --> APIEndpoints
+    Listener --> AuthFilter --> APIEndpoints
 ```
 
 ### 7.1 Configuration & Access Rules
-- **Host Binding**: `LEARN_HOST` defaults to `0.0.0.0` to permit simultaneous local and Tailscale access. Can be restricted to `127.0.0.1` when using `tailscale serve`.
-- **Port Allocation**: Defaults to `8795` (avoiding collisions with standard ports 8000, 3000, 8787).
+- **Host Binding**: `LEARN_HOST` defaults to `127.0.0.1` for secure local-only operation by default. Opt-in network exposure across Tailscale is achieved by setting `LEARN_HOST=0.0.0.0` or using `tailscale serve --bg 8795`.
+- **Port Allocation**: Defaults to `8795` (configurable via `LEARN_PORT`).
 - **Security & Authorization**:
-  - Loopback requests (`127.0.0.1`) are pre-authorized for local operator convenience.
-  - Tailnet requests validate Host headers against `LEARN_ALLOWED_HOSTS` and optionally check `LEARN_API_TOKEN` header if configured.
+  - Direct loopback connections (`127.0.0.1`, `::1`) are permitted without authentication for local operator convenience.
+  - Any non-loopback connections (LAN or Tailnet) strictly require `LEARN_API_TOKEN` supplied via `Authorization: Bearer <token>` or `X-Learn-Token`. Unauthenticated remote requests are rejected with HTTP 401.
+  - The `/api/v1/status` endpoint redacts the absolute server filesystem path of `data_dir` for non-loopback callers (`[protected]`).
 
 ---
 
@@ -665,12 +705,13 @@ graph TB
 
 | Method | Endpoint | Description | Request Body | Response Payload |
 |---|---|---|---|---|
-| `GET` | `/api/v1/health` | Service health & model harness status | None | `{"status": "ok", "harnesses": {...}}` |
+| `GET` | `/api/v1/health` | Service health & model harness status | None | `{"status": "ok", "version": "0.1.0"}` |
+| `GET` | `/api/v1/status` | Reachability, data path (masked for remote), domains | None | `PlatformStatus` |
 | `GET` | `/api/v1/topics` | List domains & topics with user progress | Optional `?domain=<id>` | `List[TopicSummary]` |
 | `GET` | `/api/v1/topics/{topic_id}` | Detailed topic fundamentals, rubrics, refs | None | `TopicDetail` |
 | `POST` | `/api/v1/topics/{topic_id}/pin` | Pin topic to learning dashboard | `{"priority": "high", "notes": "..."}` | `PinnedTopic` |
 | `GET` | `/api/v1/topics/pinned` | Fetch active pinned topics | None | `List[PinnedTopic]` |
-| `POST` | `/api/v1/topics/durable-capture` | Distill and write durable markdown note | `DurableCaptureRequest` | `{"file_path": "...", "status": "committed"}` |
+| `POST` | `/api/v1/topics/durable-capture` | Distill and write durable markdown note for user review | `DurableCaptureRequest` | `{"file_path": "...", "status": "written"}` |
 | `POST` | `/api/v1/exercises/start` | Start adaptive quiz on topic | `{"topic_id": "...", "tier": 2}` | `ExercisePrompt` |
 | `POST` | `/api/v1/exercises/turn` | Submit exercise answer & get evaluation | `{"exercise_id": "...", "answer": "..."}` | `ExerciseEvaluation` |
 | `POST` | `/api/v1/interviews/start` | Initialize mock interview session | `InterviewStartRequest` | `InterviewSession` |
@@ -690,7 +731,7 @@ Enables real-time bidirectional streaming for conversational mock interviews:
 
 ## 9. Model Context Protocol (MCP) Server Specification
 
-The MCP server implements JSON-RPC 2.0 and exposes 10 specialized tools to agent harnesses, with explicit session initialization semantics for quizzes and mock interviews.
+The MCP server is built using the official Python `mcp` SDK, exposing JSON-RPC 2.0 tools over stdio and Streamable HTTP transports. It provides 11 specialized tools with explicit session lifecycle operations.
 
 ### 9.1 Tool Inventory
 
@@ -698,6 +739,7 @@ The MCP server implements JSON-RPC 2.0 and exposes 10 specialized tools to agent
 classDiagram
     class LearnMCPServer {
         +learn_list_topics(domain)
+        +learn_ask_topic_deep_dive(topic_id, question)
         +learn_pin_topic(topic_id, priority, notes)
         +learn_get_pinned_topics()
         +learn_record_durable_learning(topic_id, title, mental_model, invariants, references, code)
@@ -711,15 +753,16 @@ classDiagram
 ```
 
 1. **`learn_list_topics`**: Enumerate curriculum domains, topics, difficulty tiers, and user completion status.
-2. **`learn_pin_topic`**: Add high-priority topic to persistent dashboard.
-3. **`learn_get_pinned_topics`**: Retrieve active priorities, target dates, and gap notes.
-4. **`learn_record_durable_learning`**: Synthesize and write structured markdown with valid frontmatter to root topic directory.
-5. **`learn_query_proficiency_gaps`**: Compute deltas between user profile and calibrated company bars (L4–L6).
-6. **`learn_start_adaptive_exercise`**: Initialize an adaptive exercise session for a given topic and tier, returning `exercise_id`, problem prompt, and invariant objectives.
-7. **`learn_run_adaptive_exercise_turn`**: Submit problem response, execute rubric grading, update rating in `$LEARN_DATA_DIR/user_profile.json`, and scale difficulty.
-8. **`learn_start_mock_interview`**: Initialize a full-scale mock interview session with configured role track, company, topic, and orthogonal modes (`timing_mode`, `assistance_mode`, `probing_mode`), returning `session_id` and the initial interviewer problem statement.
-9. **`learn_run_mock_interview_turn`**: Advance conversational mock interview turn with candidate dialogue, code submission, or hint request.
-10. **`learn_analyze_job_description`**: Ingest raw job description text, extract core competencies, score match against resume, generate tailored interview loop.
+2. **`learn_ask_topic_deep_dive`**: Query axiomatic mental models and citable references on any topic.
+3. **`learn_pin_topic`**: Add high-priority topic to persistent dashboard (`$LEARN_DATA_DIR/pinned_topics.json`).
+4. **`learn_get_pinned_topics`**: Retrieve active priorities, target dates, and gap notes.
+5. **`learn_record_durable_learning`**: Redact PII and write structured markdown with valid frontmatter to topic `learnings/` directory for user review.
+6. **`learn_query_proficiency_gaps`**: Compute deltas between user profile and calibrated company bars (L4–L6).
+7. **`learn_start_adaptive_exercise`**: Initialize an adaptive exercise session for a given topic and tier, returning `exercise_id`, problem prompt, and invariant objectives.
+8. **`learn_run_adaptive_exercise_turn`**: Submit problem response, execute rubric grading, update rating in `$LEARN_DATA_DIR/user_profile.json`, and scale difficulty.
+9. **`learn_start_mock_interview`**: Initialize a full-scale mock interview session with configured role track, company, topic, and orthogonal modes (`timing_mode`, `assistance_mode`, `probing_mode`), returning `session_id` and initial interviewer prompt.
+10. **`learn_run_mock_interview_turn`**: Advance conversational mock interview turn with candidate dialogue, code submission, or hint request.
+11. **`learn_analyze_job_description`**: Ingest raw job description text, extract core competencies, score match against resume, generate tailored interview loop.
 
 ---
 

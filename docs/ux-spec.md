@@ -14,7 +14,7 @@ The `Savage-Fred/learn` platform is an engineering-first, local-first, Tailnet-a
 
 ### 1.1 Core UX Principles
 1. **Invariant-Centric Learning**: Every topic, exercise, and interview is rooted in axiomatic invariants (mathematical proofs, memory hierarchy models, trust boundaries, privacy definitions) rather than superficial syntax.
-2. **Zero-Latency Engineering Density**: Clean, fast, dark-mode terminal/IDE aesthetic. Information is presented with high signal density, code snippets, mathematical notation, and formal citations.
+2. **Zero-Latency Engineering Density**: Clean, fast, high-contrast light theme terminal/IDE aesthetic (clean paper white `#FFFFFF`, subtle borders, with dark mode toggle). Information is presented with high signal density, code snippets, mathematical notation, and formal citations.
 3. **Adaptive Cognitive Pressure**: Exercises and interviews dynamically scale difficulty based on continuous performance measurement, stepping candidates up to ambiguous, multi-variable constraints upon demonstrated mastery, or providing targeted scaffolding upon failure.
 4. **Durable Knowledge Crystallization**: Exploratory "rabbit holes" and interview debriefs are distilled on-demand into git-versioned, citable markdown files committed directly to the topic knowledge base.
 5. **Absolute Privacy of User Performance**: All personal user evaluations, transcripts, proficiency ratings, and resumes are strictly isolated in an out-of-git XDG data directory (`$LEARN_DATA_DIR` / `~/.local/share/learn/`), ensuring zero personal data leaks into git version control.
@@ -102,7 +102,7 @@ sequenceDiagram
 
     User->>UI: Enter prompt ("What is the invariant in DP-SGD gradient clipping?")
     UI->>Core: Search topic directory (privacy-engineering/differential-privacy)
-    Core-->>UI: Return fundamentals.md, references.md, and rubric context
+    Core-->>UI: Return fundamentals.md, references.yaml, and rubric context
     UI->>Router: Dispatch prompt + retrieved invariant context
     Router->>Harness: Execute via local CLI (e.g. `claude -p --tools "" --output-format json`)
     Harness-->>Router: Stream structured JSON response
@@ -116,11 +116,11 @@ Every deep-dive response MUST be rendered in 5 structured sections:
 1. **Core Mental Model**: 1–2 paragraphs providing the intuitive and axiomatic foundation.
 2. **Mathematical / Architectural Invariants**: Preserved truths, equations (LaTeX/KaTeX), or state machine guarantees.
 3. **Idiomatic Code / Architectural Pattern**: Production-grade Python/Rust/Go snippet illustrating the pattern with edge-case handling.
-4. **Authoritative Citations & References**: Citing academic papers, RFCs, textbooks, or verified interview loops from `references.md`.
+4. **Authoritative Citations & References**: Citing academic papers, RFCs, textbooks, or calibrated practice archetypes from `references.yaml`.
 5. **Interview Application & Probes**: Specific questions asked at L4, L5, and L6, highlighting what interviewers evaluate.
 
 #### 1.5 Edge Cases & Error Modes
-- **Harness Failure / Rate Limit**: Automatically falls back through Tier 1 (`claude` -> `codex` -> `agy`) to Tier 2 (API keys) or Tier 3 (mock/offline). An alert banner displays: `[Harness Fallback Active: Running via Codex gpt-6-astra]`.
+- **Harness Failure / Rate Limit**: Automatically falls back through Tier 1 (`claude` -> `codex` -> `agy`) to Tier 2 (Direct API keys). If all live providers fail, the system returns an explicit HTTP 503 Service Unavailable error (`{"error": "providers_unavailable", "message": "All LLM execution tiers exhausted"}`) and NEVER silently falls back to synthetic mock evaluations in production. Deterministic mock mode is strictly opt-in via `LEARN_USE_MOCK_LLM=true`, and simulated evaluations are strictly quarantined from production user ratings.
 - **Ambiguous Query**: If the query matches multiple domains (e.g. "consensus"), the UI presents an instant disambiguation picker: `[Distributed Systems Raft/Paxos]` vs. `[Blockchain Byzantine Consensus]`.
 
 ---
@@ -177,15 +177,16 @@ During an exploratory Q&A session, debugging exercise, or post-interview debrief
 ```mermaid
 flowchart TD
     A[User triggers 'Capture Durable Learning'] --> B[Distillation Engine extracts Transcript & Key Signals]
-    B --> C[Multi-Model Router synthesizes Structured Markdown]
-    C --> D[Generate YAML Frontmatter with unique ID & tags]
-    D --> E[Resolve Destination Directory in Git Tree]
-    E --> F{Priority Topic?}
-    F -- Yes --> G[Write to <domain>/<topic>/learnings/<id>.md]
-    F -- No --> H[Write to <domain>/learnings/<id>.md]
-    G --> I[Validate Markdown & Invariants Schema]
-    H --> I
-    I --> J[File Ready for Git Commit & Diff Review]
+    B --> C[PII & Privacy Redaction: Scrub candidate PII, resume data, proprietary code, scores]
+    C --> D[Multi-Model Router synthesizes Structured Markdown]
+    D --> E[Generate YAML Frontmatter with unique ID & tags]
+    E --> F[Resolve Destination Directory in Git Tree]
+    F --> G{Priority Topic?}
+    G -- Yes --> H[Write to <domain>/<topic>/learnings/<id>.md]
+    G -- No --> I[Write to <domain>/learnings/<id>.md]
+    H --> J[Validate Markdown & Invariants Schema]
+    I --> J
+    J --> K[Return HTTP 200 {status: 'written'} — Ready for User Git Review & Branch Commit]
 ```
 
 #### 3.4 Markdown Artifact Specification (with Frontmatter)
@@ -228,8 +229,9 @@ Mathematical formulation of Gaussian noise scale $\sigma \ge \frac{C \sqrt{2 \ln
 - Mironov, *Rényi Differential Privacy* (IEEE CSF 2017).
 ```
 
-#### 3.5 Verification Invariant
-The resulting file is saved strictly in the designated git-tracked repository directory (`<domain>/<topic>/learnings/` or `<domain>/learnings/`), formatted with valid frontmatter, while zero user scores or personal ratings are embedded.
+#### 3.5 Verification Invariant & Write-Only Semantics
+1. **Out-of-Tree Privacy Invariant**: Zero candidate PII, resume data, private company secrets, or user evaluation scores are ever written to the repository markdown file. All evaluation metrics reside strictly in `$LEARN_DATA_DIR`.
+2. **Write-Only API Contract**: The API endpoint returns `{"status": "written", "path": "..."}`. It is strictly write-only and NEVER automatically commits or pushes to Git on the primary checkout or server process. The user inspects the written markdown file and commits it via standard git workflow on their branch.
 
 ---
 
@@ -377,7 +379,7 @@ flowchart TD
 $$\text{Fit Score} = 100 \times \sum_{i=1}^{N} w_i \cdot \min\left(1.0, \frac{R_i}{T_i}\right)$$
 Where:
 - $w_i$: Weight of competency domain $i$ extracted from job description ($\sum w_i = 1.0$).
-- $R_i$: User's current verified proficiency rating in domain $i \in [1.0, 5.0]$.
+- $R_i$: User's current assessed proficiency rating in domain $i \in [1.0, 5.0]$ (defaults to baseline $1.0$ if unassessed).
 - $T_i$: Target level expectation for domain $i$ (e.g. L4 = 3.0, L5 = 4.0, L6 = 4.8).
 
 #### 6.4 Output Deliverables
@@ -404,15 +406,37 @@ Where:
 | **Track 3** | FAANG + AI Labs Security Engineer | L4 (Mid), L5 (Senior), L6 (Staff) | Threat modeling, cloud security, sandbox escapes, authorization architectures, autonomous agent defense | Modern AuthN/AuthZ, Threat Modeling, Agent Access Models, Rust/Go |
 | **Track 4** | AI Lab Research Engineer (non-PhD) | L4 (Mid), L5 (Senior) | High-performance inference runtimes, GPU memory utilization, distributed training plumbing, numeric stability | Pythonic Patterns, Rust, Data Structures, Master's Algorithms, Statistics |
 
+### 4.1.1 Target Competency Level Matrix ($T_i \in [1.0, 5.0]$) & Weights ($w_i$, $\sum w_i = 1.0$)
+
+To ensure reproducible, deterministic role fit evaluation across implementations (Sol Finding 5), each of the 4 role tracks defines explicit target competency levels $T_i$ and weights $w_i$ across all 11 priority topics:
+
+| Priority Topic ($i$) | Track 1 Target $T_i$ | Track 1 Weight $w_i$ | Track 2 Target $T_i$ | Track 2 Weight $w_i$ | Track 3 Target $T_i$ | Track 3 Weight $w_i$ | Track 4 Target $T_i$ | Track 4 Weight $w_i$ |
+|---|---|---|---|---|---|---|---|---|
+| 1. `pythonic-coding-patterns` | 4.2 | 0.10 | 3.8 | 0.05 | 3.8 | 0.05 | 4.6 | 0.15 |
+| 2. `masters-algorithms` | 4.5 | 0.15 | 3.5 | 0.05 | 3.5 | 0.05 | 4.2 | 0.12 |
+| 3. `data-structures` | 4.5 | 0.15 | 3.8 | 0.05 | 3.8 | 0.05 | 4.5 | 0.15 |
+| 4. `modern-authn-authz` | 3.5 | 0.05 | 4.5 | 0.15 | 4.8 | 0.20 | 2.5 | 0.03 |
+| 5. `pets-for-ai` | 2.5 | 0.05 | 4.8 | 0.20 | 3.5 | 0.05 | 3.0 | 0.05 |
+| 6. `threat-modeling` | 3.0 | 0.05 | 4.5 | 0.15 | 4.8 | 0.20 | 2.5 | 0.03 |
+| 7. `agent-access-models` | 3.0 | 0.05 | 4.2 | 0.10 | 4.8 | 0.20 | 3.5 | 0.05 |
+| 8. `statistics-for-data-analysis` | 3.8 | 0.10 | 4.2 | 0.05 | 3.0 | 0.05 | 4.6 | 0.15 |
+| 9. `rust` | 4.0 | 0.15 | 3.0 | 0.02 | 4.0 | 0.08 | 4.5 | 0.20 |
+| 10. `go` | 4.0 | 0.10 | 3.0 | 0.03 | 4.0 | 0.05 | 3.0 | 0.05 |
+| 11. `modern-differential-privacy` | 2.0 | 0.05 | 4.8 | 0.15 | 2.5 | 0.02 | 2.5 | 0.02 |
+| **Sum of Weights ($\sum w_i$)** | — | **1.00** | — | **1.00** | — | **1.00** | — | **1.00** |
+
+#### Missing-Rating Rule (§R1, Sol Finding 5)
+If a candidate has not yet completed assessments in subdomain/topic $i$, their rating defaults to the baseline minimum $R_i = 1.0$. This ensures the fit scoring formula is completely deterministic, reproducible, and never encounters divide-by-zero or undefined state.
+
 ---
 
 ### 4.2 The 7 Notable Company Calibrations
 
-> **Grounding & Provenance Notice (§R2)**: Company calibrations and interview loops below are synthesized from authoritative engineering disclosures, public post-mortems, official hiring publications, and verified candidate loop reports. In Milestone 1, specific multi-round loops serve as calibrated practice archetypes; every problem prompt maps directly to a verified source record in the corresponding domain's `references.md`.
+> **Grounding & Provenance Notice (§R2)**: Company calibrations and interview loops below are synthesized from authoritative engineering disclosures, public post-mortems, and official engineering publications. Specific multi-round loops serve as calibrated practice archetypes; exercise prompts map directly to peer-reviewed papers or authoritative specifications documented in each domain's `references.yaml`. No ungrounded candidate debriefs or synthetic claims are presented as verified.
 
 #### 1. OpenAI
 - **Cultural & Interview Philosophy**: Practical execution speed over academic perfection. Heavy emphasis on real-world systems debugging, agent tooling, inference optimization (KV-cache paging, speculative decoding, FlashAttention), and rapid iteration under pressure.
-- **Authoritative Provenance**: OpenAI Triton, GPU cluster architecture disclosures, and verified Research Engineer interview debriefs (2024–2026).
+- **Authoritative Provenance**: OpenAI Triton documentation, GPU cluster architecture disclosures, and published research papers.
 - **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. Practical Coding Round: 60-min live CLI/harness coding; build streaming batcher or async task queue with live unit tests.
   2. Systems & ML Infrastructure Design: 60-min design of multi-node GPU cluster scheduler or token dispatching layer.
@@ -422,7 +446,7 @@ Where:
 
 #### 2. Google / Google DeepMind (GDM)
 - **Cultural & Interview Philosophy**: Formal algorithmic rigor, asymptotic optimality, mathematical proof of invariants, massive global scale (Spanner, Borg, Zanzibar), clean modular code, and Googleyness.
-- **Authoritative Provenance**: Corbett et al. (Spanner, OSDI 2012), Pang et al. (Zanzibar, USENIX ATC 2019), and verified L5/L6 SWE hiring committee rubrics.
+- **Authoritative Provenance**: Corbett et al. (Spanner, OSDI 2012), Pang et al. (Zanzibar, USENIX ATC 2019), and published Google distributed systems literature.
 - **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. Algorithmic Coding 1: 45 min, LeetCode Hard, amortized analysis, formal invariant proof.
   2. Algorithmic Coding 2: 45 min, advanced graph algorithms (Tarjan SCC, Network Flow, or 2-SAT).
@@ -442,7 +466,7 @@ Where:
 
 #### 4. Meta
 - **Cultural & Interview Philosophy**: Speed, volume, and massive social-graph scale (TAO, Cassandra, Memcached). Candidates are expected to write production-ready code with near-zero syntax errors at high velocity.
-- **Authoritative Provenance**: Bronson et al. (TAO, USENIX ATC 2013), Meta Engineering disclosures, and E5/E6 candidate calibration matrices.
+- **Authoritative Provenance**: Bronson et al. (TAO, USENIX ATC 2013), Meta Engineering disclosures, and published systems literature.
 - **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. Speed Coding 1: 45 min, 2 distinct LeetCode Medium/Hard problems, fully coded and dry-run tested.
   2. Speed Coding 2: 45 min, 2 additional algorithmic problems.
@@ -452,7 +476,7 @@ Where:
 
 #### 5. Databricks
 - **Cultural & Interview Philosophy**: Low-level systems internals, database storage engines, query execution engines, memory layout, cache-conscious structures, and high-concurrency systems in C++/Rust/Go.
-- **Authoritative Provenance**: Armbrust et al. (Delta Lake, VLDB 2020), Photon vectorized engine disclosures, and L5/L6 systems engineering loops.
+- **Authoritative Provenance**: Armbrust et al. (Delta Lake, VLDB 2020), Photon vectorized engine disclosures, and published database systems literature.
 - **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. Systems Coding: Implement an in-memory B+ Tree with latch crabbing, or a concurrent lock-free queue with atomic CAS operations.
   2. Storage / Query Engine Design: Design a columnar storage engine (Parquet/Delta) or vectorized query execution pipeline.
@@ -462,7 +486,7 @@ Where:
 
 #### 6. Netflix
 - **Cultural & Interview Philosophy**: Freedom & Responsibility; historically distinguished by a senior-first engineering culture, now complemented by structured early-career and new-graduate pathways (Netflix New Grad Program). Extreme emphasis on high autonomy, mature business judgment, microservice resilience, chaos engineering, continuous A/B experimentation, and end-to-end operational ownership.
-- **Authoritative Provenance**: Netflix TechBlog (Chaos Monkey, Microservice Architecture), official Netflix Culture Memorandum, and verified Senior SWE loops.
+- **Authoritative Provenance**: Netflix TechBlog (Chaos Monkey, Microservice Architecture) and official Netflix Culture Memorandum.
 - **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. System Design (Resilience & Scale): Design a tier-1 streaming or recommendation pipeline with circuit breakers, fallbacks, and multi-region failover.
   2. Technical Strategy & Domain Deep-Dive: Deep exploration of candidate's technical philosophy and architectural decisions.
@@ -472,7 +496,7 @@ Where:
 
 #### 7. Apple
 - **Cultural & Interview Philosophy**: Deep on-device efficiency, privacy by design, formal cryptographic attestation (Private Cloud Compute), rigorous differential privacy guarantees for telemetry, and robust systems programming in Swift/Rust/C++.
-- **Authoritative Provenance**: Apple Security Engineering & Architecture disclosures (Private Cloud Compute, 2024), Apple Differential Privacy team publications, and ICT4/ICT5 loops.
+- **Authoritative Provenance**: Apple Security Engineering & Architecture disclosures (Private Cloud Compute, 2024), Apple Differential Privacy team publications, and published systems literature.
 - **Typical 4–5 Round Loop (Calibrated Archetype)**:
   1. Technical Coding: Memory-constrained systems programming; custom allocators, bit manipulation, or low-level concurrency.
   2. Privacy & Security Architecture: Cryptographic attestation, confidential compute (TEEs), secure enclaves, zero data retention.
@@ -570,10 +594,10 @@ The platform evaluates user mock interview and quiz submissions on a standardize
 
 ## 6. Web UI Information Architecture & Component Hierarchy
 
-The web interface is hosted locally and served over Tailnet (`http://will-ubuntu-26.tailacca87.ts.net:8795`). It adheres to a high-density, dark-mode terminal/IDE design system (monospaced code fonts, subtle borders, high contrast, zero unnecessary animations).
+The web interface is hosted locally and served over loopback (default `http://127.0.0.1:8795`) or configured Tailnet domain. It adheres to a high-density, high-contrast light theme as the primary default (clean paper white `#FFFFFF`, subtle gray borders `#E2E8F0`, monospaced code fonts, zero unnecessary animations) with an optional dark mode toggle.
 
 ### 6.1 Screen 1: Dashboard & Priority Command Center (`/`)
-- **Top Navigation Bar**: Global status pill (`Tailnet: Connected`, `Active Harness: Claude Code CLI`), Quick Search (`Cmd+K`), Pinned Topics counter.
+- **Top Navigation Bar**: Global status pill (`Status: Connected`, `Active Harness: Claude Code CLI`), Quick Search (`Cmd+K`), Pinned Topics counter, Theme Toggle (`Light / Dark`).
 - **Left Sidebar**:
   - Pinned Topics List (draggable priority ordering, urgency indicators, target loop dates).
   - Domain Navigator (`leetcode/`, `system-design/`, `security/`, `privacy-engineering/`).
@@ -591,15 +615,15 @@ The web interface is hosted locally and served over Tailnet (`http://will-ubuntu
 
 ### 6.2 Screen 2: Topic Explorer & Deep-Dive Arena (`/topics/{topic_slug}`)
 - **Split-View Workspace**:
-  - **Left Pane (Curriculum & Fundamentals)**: Clean markdown renderer displaying `fundamentals.md`, core invariants, LaTeX equations, and `references.md` citations.
+  - **Left Pane (Curriculum & Fundamentals)**: Clean markdown renderer displaying `fundamentals.md`, core invariants, LaTeX equations, and `references.yaml` citations.
   - **Right Pane (Interactive Console & Q&A)**:
     - Real-time prompt terminal for asking questions and exploring edge cases.
     - Multi-model response viewer with 5-section high-density formatting.
     - Quick action buttons: `[Pin Topic]`, `[Take Tiered Exercise]`, `[Capture as Durable Learning]`.
   - **Durable Capture Modal**:
-    - Pre-populates distilled breakthrough title, invariants, and code snippet.
+    - Pre-populates distilled breakthrough title, invariants, and code snippet with candidate PII and private evaluation metrics scrubbed.
     - Shows destination file path preview (e.g. `system-design/rust/learnings/learn-20261103-atomic-ringbuffer.md`).
-    - One-click `[Save to Git Tree]` button.
+    - One-click `[Save Note to Topic]` button (write-only write to repo tree, ready for branch commit).
 
 ---
 
@@ -781,5 +805,5 @@ $LEARN_DATA_DIR/
 To ensure no personal state ever enters the Git repository:
 1. All local state directories (`personal_data/`, `data/`, `user_profile.json`, `pinned_topics.json`, `sessions/`, `resumes/`, `telemetry/`) are explicitly ignored in `.gitignore`.
 2. Platform initialization defaults `$LEARN_DATA_DIR` to `~/.local/share/learn`, strictly outside the repository root.
-3. Automated test `app/tests/test_foundation.py::test_state_directory_isolation` asserts that state paths resolve outside the repo tree.
-4. Clean-tree tests assert that running user workflows results in `git status --porcelain` returning empty output for personal state files.
+3. Automated tests `app/tests/test_foundation.py::test_personal_state_store_resolves_outside_repository_by_default` and `test_rejection_of_in_repo_data_dir` assert that state paths resolve outside the repo tree and reject in-repo configurations.
+4. Clean-tree test `app/tests/test_foundation.py::test_clean_repository_invariant` asserts in an isolated repository sandbox that running user workflows results in `git status --porcelain` returning empty output for personal state files.
