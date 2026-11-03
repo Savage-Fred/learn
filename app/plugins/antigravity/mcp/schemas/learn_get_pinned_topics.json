@@ -1,0 +1,8 @@
+{
+  "name": "learn_get_pinned_topics",
+  "description": "Fetch all currently pinned topics, target dates, and urgency metrics.",
+  "parameters": {
+    "type": "object",
+    "properties": {}
+  }
+}

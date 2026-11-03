@@ -38,6 +38,7 @@ dev = [
 [project.scripts]
 learn = "app.main:cli"
 learn-server = "app.main:run_server"
+learn-mcp = "app.mcp.transports.stdio:main"
 
 [build-system]
 requires = ["hatchling"]

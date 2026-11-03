@@ -1,0 +1,27 @@
+{
+  "name": "learn_pin_topic",
+  "description": "Pin a topic or subtopic to the user's priority learning dashboard.",
+  "parameters": {
+    "type": "object",
+    "required": ["topic_slug"],
+    "properties": {
+      "topic_slug": {
+        "type": "string",
+        "description": "Canonical topic slug or topic_id"
+      },
+      "topic_id": {
+        "type": "string",
+        "description": "Alias for topic_slug"
+      },
+      "priority": {
+        "type": "string",
+        "enum": ["high", "medium", "low"],
+        "default": "high"
+      },
+      "notes": {
+        "type": "string",
+        "description": "Optional user notes or study reminders"
+      }
+    }
+  }
+}

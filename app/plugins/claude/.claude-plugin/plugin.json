@@ -1,0 +1,19 @@
+{
+  "name": "learn",
+  "version": "0.1.0",
+  "description": "Local-first technical learning and L4-L6 interview preparation platform MCP tools and skills",
+  "author": {
+    "name": "Will McCarty",
+    "email": "wpm1414@gmail.com"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "learning",
+    "interview-prep",
+    "leetcode",
+    "system-design",
+    "security",
+    "privacy-engineering",
+    "mcp"
+  ]
+}

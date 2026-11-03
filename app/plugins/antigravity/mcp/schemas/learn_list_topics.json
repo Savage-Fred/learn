@@ -1,0 +1,14 @@
+{
+  "name": "learn_list_topics",
+  "description": "List all curriculum topic domains, priority topics, problem counts, and status.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "domain": {
+        "type": "string",
+        "enum": ["all", "leetcode", "system-design", "security", "privacy-engineering"],
+        "default": "all"
+      }
+    }
+  }
+}
