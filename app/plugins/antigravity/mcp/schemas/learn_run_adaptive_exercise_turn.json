@@ -1,0 +1,34 @@
+{
+  "name": "learn_run_adaptive_exercise_turn",
+  "description": "Execute a turn in an interactive adaptive exercise.",
+  "parameters": {
+    "type": "object",
+    "required": ["exercise_id"],
+    "properties": {
+      "topic_slug": {
+        "type": "string"
+      },
+      "topic_id": {
+        "type": "string"
+      },
+      "exercise_id": {
+        "type": "string"
+      },
+      "user_answer": {
+        "type": "string"
+      },
+      "user_response": {
+        "type": "string"
+      },
+      "session_id": {
+        "type": "string"
+      },
+      "history": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

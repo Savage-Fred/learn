@@ -1,0 +1,32 @@
+{
+  "name": "learn_run_mock_interview_turn",
+  "description": "Process a turn in a mock interview session.",
+  "parameters": {
+    "type": "object",
+    "required": ["session_id"],
+    "properties": {
+      "session_id": {
+        "type": "string"
+      },
+      "user_response": {
+        "type": "string"
+      },
+      "message": {
+        "type": "string"
+      },
+      "hints_enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "turn_type": {
+        "type": "string",
+        "enum": ["candidate_dialog", "request_hint"],
+        "default": "candidate_dialog"
+      },
+      "mode": {
+        "type": "string",
+        "enum": ["hints", "no-hints"]
+      }
+    }
+  }
+}

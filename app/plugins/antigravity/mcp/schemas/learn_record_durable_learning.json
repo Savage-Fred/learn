@@ -1,0 +1,56 @@
+{
+  "name": "learn_record_durable_learning",
+  "description": "Commit distilled technical learnings into a canonical markdown file in the topic directory.",
+  "parameters": {
+    "type": "object",
+    "required": ["topic_slug", "title"],
+    "properties": {
+      "topic_slug": {
+        "type": "string"
+      },
+      "topic_id": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "notes": {
+        "type": "string"
+      },
+      "mental_model": {
+        "type": "string"
+      },
+      "invariants": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "domain": {
+        "type": "string"
+      },
+      "citable_sources": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "code_examples": {
+        "type": "string"
+      },
+      "target_level": {
+        "type": "string",
+        "default": "L6"
+      },
+      "tags": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "frontmatter_metadata": {
+        "type": "object"
+      }
+    }
+  }
+}

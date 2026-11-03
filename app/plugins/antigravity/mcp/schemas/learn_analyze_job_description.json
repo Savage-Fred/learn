@@ -1,0 +1,22 @@
+{
+  "name": "learn_analyze_job_description",
+  "description": "Analyze a job description against the user's resume.",
+  "parameters": {
+    "type": "object",
+    "required": ["job_description_text"],
+    "properties": {
+      "job_description_text": {
+        "type": "string"
+      },
+      "resume_text": {
+        "type": "string"
+      },
+      "role_track": {
+        "type": "string"
+      },
+      "target_company": {
+        "type": "string"
+      }
+    }
+  }
+}

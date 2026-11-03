@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "learn": {
+      "command": "python3",
+      "args": ["-m", "app.mcp"],
+      "env": {
+        "PYTHONPATH": "."
+      }
+    }
+  }
+}
