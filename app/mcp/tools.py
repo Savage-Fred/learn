@@ -1,6 +1,7 @@
 """Definitions, schemas, argument validation, and handlers for all 8 MCP tools."""
 
 import json
+import math
 import os
 import re
 import uuid
@@ -11,6 +12,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import yaml
 
 from app.config import settings
+from app.core.state import StateManager
 from app.mcp.schemas import (
     INVALID_PARAMS,
     METHOD_NOT_FOUND,
@@ -322,7 +324,13 @@ class MCPToolRegistry:
                     if exercises_dir.is_dir():
                         ex_count = len([f for f in exercises_dir.glob("*.md") if not f.name.startswith(".")])
 
-                    user_rating = ratings.get(slug, 0.0)
+                    raw_rating = ratings.get(slug, 0.0)
+                    try:
+                        user_rating = float(raw_rating)
+                        if math.isnan(user_rating) or math.isinf(user_rating):
+                            user_rating = 0.0
+                    except (ValueError, TypeError):
+                        user_rating = 0.0
                     user_status = "completed" if user_rating >= 4.0 else ("in_progress" if user_rating > 0.0 else "not_started")
 
                     topics.append({
@@ -351,59 +359,20 @@ class MCPToolRegistry:
             raise ValueError("Invalid topic slug: path traversal not allowed")
 
         priority = args.get("priority", "high")
+        if priority not in ("high", "medium", "low"):
+            raise ValueError(f"Priority must be one of ('high', 'medium', 'low'), got '{priority}'.")
         notes = args.get("notes") or ""
+        domain = args.get("domain", "general")
 
-        pins_file = settings.data_dir / "pinned_topics.json"
-        pins_list = []
-        if pins_file.exists():
-            try:
-                with open(pins_file, "r", encoding="utf-8") as f:
-                    pins_list = json.load(f)
-            except Exception:
-                pins_list = []
-
-        now_iso = datetime.now(timezone.utc).isoformat()
-        found = False
-        for item in pins_list:
-            if item.get("topic_id") == slug or item.get("topic_slug") == slug:
-                item["priority"] = priority
-                item["notes"] = notes
-                item["pinned_at"] = now_iso
-                found = True
-                break
-
-        if not found:
-            pins_list.append({
-                "topic_id": slug,
-                "topic_slug": slug,
-                "priority": priority,
-                "notes": notes,
-                "pinned_at": now_iso,
-            })
-
-        safe_atomic_write_json(pins_file, pins_list)
-        return {
-            "status": "pinned",
-            "topic_id": slug,
-            "topic_slug": slug,
-            "priority": priority,
-            "notes": notes,
-            "pinned_at": now_iso,
-        }
+        state_mgr = StateManager(settings.data_dir)
+        return state_mgr.pin_topic(topic_slug=slug, domain=domain, priority=priority, notes=notes)
 
     # -------------------------------------------------------------------------
     # Tool Handler 3: learn_get_pinned_topics
     # -------------------------------------------------------------------------
     def _handle_get_pinned_topics(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        pins_file = settings.data_dir / "pinned_topics.json"
-        if not pins_file.exists():
-            return {"pinned_topics": []}
-        try:
-            with open(pins_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                return {"pinned_topics": data}
-        except Exception:
-            return {"pinned_topics": []}
+        state_mgr = StateManager(settings.data_dir)
+        return {"pinned_topics": state_mgr.get_pinned_topics()}
 
     # -------------------------------------------------------------------------
     # Tool Handler 4: learn_record_durable_learning
@@ -533,12 +502,19 @@ class MCPToolRegistry:
             except Exception:
                 pass
 
+        def _safe_float(val, default):
+            try:
+                v = float(val)
+                return default if math.isnan(v) or math.isinf(v) else v
+            except (ValueError, TypeError):
+                return default
+
         # Calculate gap against target competencies
         competencies = [
-            {"domain": "leetcode", "topic": "algorithms", "required": 4.5, "current": ratings.get("algorithms", 2.0)},
-            {"domain": "system-design", "topic": "go", "required": 4.5, "current": ratings.get("go", 3.0)},
-            {"domain": "security", "topic": "authn-authz", "required": 4.0, "current": ratings.get("authn-authz", 2.5)},
-            {"domain": "privacy-engineering", "topic": "differential-privacy", "required": 4.0, "current": ratings.get("differential-privacy", 1.5)},
+            {"domain": "leetcode", "topic": "algorithms", "required": 4.5, "current": _safe_float(ratings.get("algorithms"), 2.0)},
+            {"domain": "system-design", "topic": "go", "required": 4.5, "current": _safe_float(ratings.get("go"), 3.0)},
+            {"domain": "security", "topic": "authn-authz", "required": 4.0, "current": _safe_float(ratings.get("authn-authz"), 2.5)},
+            {"domain": "privacy-engineering", "topic": "differential-privacy", "required": 4.0, "current": _safe_float(ratings.get("differential-privacy"), 1.5)},
         ]
 
         total_req = sum(c["required"] for c in competencies)
@@ -613,6 +589,7 @@ class MCPToolRegistry:
 
         # Update rating
         ratings_file = settings.data_dir / "ratings" / "subdomain_ratings.json"
+        ratings_alias_file = settings.data_dir / "subdomain_ratings.json"
         ratings = {}
         if ratings_file.exists():
             try:
@@ -620,10 +597,17 @@ class MCPToolRegistry:
                     ratings = json.load(f)
             except Exception:
                 pass
-        curr_rating = ratings.get(canonical_slug, 2.5)
+        raw_rating = ratings.get(canonical_slug, 2.5)
+        try:
+            curr_rating = float(raw_rating)
+            if math.isnan(curr_rating) or math.isinf(curr_rating):
+                curr_rating = 2.5
+        except (ValueError, TypeError):
+            curr_rating = 2.5
         new_rating = round(curr_rating + (0.35 if passed else -0.25), 2)
         ratings[canonical_slug] = max(1.0, min(5.0, new_rating))
         safe_atomic_write_json(ratings_file, ratings)
+        safe_atomic_write_json(ratings_alias_file, ratings)
 
         # Record session turn
         sessions_file = settings.data_dir / "sessions" / "exercises.jsonl"

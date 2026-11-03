@@ -118,7 +118,7 @@ class AdaptiveEngine:
                 "topic": topic_id,
                 "score": score,
                 "passed": passed,
-                "user_response": user_response[:250],
+                "user_response": (user_response or "")[:250],
                 "evaluation": eval_feedback,
                 "feedback": eval_feedback,
                 "new_rating": new_rating,

@@ -46,6 +46,8 @@ class TopicLoader:
         clean_slug = sanitize_identifier(topic_slug).lower()
         if domain:
             clean_domain = sanitize_identifier(domain).lower()
+            if clean_domain not in ALLOWED_DOMAINS:
+                return None
             candidate = self.topics_root / clean_domain / clean_slug
             if candidate.is_dir() and candidate.is_relative_to(self.topics_root):
                 return clean_domain, candidate.resolve()
@@ -83,7 +85,12 @@ class TopicLoader:
 
     def list_topics(self, domain_filter: str = "all") -> List[Dict[str, Any]]:
         """List all topics across domains with metadata and counts."""
-        target_domains = ALLOWED_DOMAINS if domain_filter == "all" else [domain_filter]
+        if domain_filter == "all":
+            target_domains = ALLOWED_DOMAINS
+        elif domain_filter in ALLOWED_DOMAINS:
+            target_domains = [domain_filter]
+        else:
+            raise ValueError(f"Invalid domain '{domain_filter}'; allowed domains are: {ALLOWED_DOMAINS}")
         topics = []
 
         for d in target_domains:
@@ -129,7 +136,10 @@ class TopicLoader:
 
     def load_topic_detail(self, domain: str, topic_slug: str) -> Optional[Dict[str, Any]]:
         """Load complete topic detail bundle."""
-        resolved = self.resolve_topic_dir(topic_slug, domain)
+        clean_domain = str(domain).lower().strip()
+        if clean_domain not in ALLOWED_DOMAINS:
+            return None
+        resolved = self.resolve_topic_dir(topic_slug, clean_domain)
         if not resolved:
             return None
         actual_domain, topic_dir = resolved

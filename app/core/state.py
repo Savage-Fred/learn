@@ -2,6 +2,7 @@
 
 import fcntl
 import json
+import math
 import os
 import re
 import tempfile
@@ -56,7 +57,7 @@ def sanitize_identifier(identifier: str) -> str:
     if not identifier or not str(identifier).strip():
         raise ValueError("Identifier cannot be empty.")
     clean = str(identifier).strip()
-    if ".." in clean or "/" in clean or "\\" in clean or "\0" in clean:
+    if clean == "." or ".." in clean or "/" in clean or "\\" in clean or "\0" in clean:
         raise ValueError(f"Security violation: path traversal detected in identifier '{clean}'.")
     return clean
 
@@ -257,7 +258,15 @@ class StateManager:
 
     def update_subdomain_rating(self, topic_slug: str, new_rating: float) -> float:
         clean_slug = sanitize_identifier(topic_slug)
-        clamped = round(max(1.0, min(5.0, float(new_rating))), 2)
+        try:
+            val = float(new_rating)
+            if math.isnan(val):
+                val = 1.0
+            elif math.isinf(val):
+                val = 5.0 if val > 0 else 1.0
+        except (ValueError, TypeError):
+            val = 1.0
+        clamped = round(max(1.0, min(5.0, val)), 2)
 
         with self.ratings_lock():
             ratings = safe_read_json(self.ratings_file)
@@ -271,7 +280,17 @@ class StateManager:
             return clamped
 
     def set_subdomain_ratings(self, ratings: Dict[str, float]) -> None:
-        clamped = {k: round(max(1.0, min(5.0, float(v))), 2) for k, v in ratings.items()}
+        clamped = {}
+        for k, v in ratings.items():
+            try:
+                val = float(v)
+                if math.isnan(val):
+                    val = 1.0
+                elif math.isinf(val):
+                    val = 5.0 if val > 0 else 1.0
+            except (ValueError, TypeError):
+                val = 1.0
+            clamped[sanitize_identifier(k)] = round(max(1.0, min(5.0, val)), 2)
         with self.ratings_lock():
             atomic_write_json(self.ratings_file, clamped)
             atomic_write_json(self.ratings_alias_file, clamped)

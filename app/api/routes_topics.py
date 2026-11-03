@@ -37,7 +37,9 @@ class DurableLearningCreate(BaseModel):
 @router.get("")
 async def list_topics(domain: Optional[str] = Query(default="all")):
     """List all available curriculum topics, metadata, problem counts, and user status."""
-    domain_filter = str(domain).lower() if domain else "all"
+    domain_filter = str(domain).lower().strip() if domain else "all"
+    if domain_filter != "all" and domain_filter not in ALLOWED_DOMAINS:
+        raise HTTPException(status_code=400, detail=f"Invalid domain '{domain_filter}'; allowed domains are: {ALLOWED_DOMAINS}")
     try:
         topics = topic_loader.list_topics(domain_filter=domain_filter)
     except ValueError as e:
@@ -71,10 +73,13 @@ async def get_pinned():
 async def get_topic_detail(domain: str, topic_slug: str):
     """Retrieve complete topic payload including fundamentals, references, rubrics, and exercises."""
     try:
-        clean_domain = sanitize_identifier(domain).lower()
-        clean_slug = sanitize_identifier(topic_slug).lower()
+        clean_domain = sanitize_identifier(domain).lower().strip()
+        clean_slug = sanitize_identifier(topic_slug).lower().strip()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+    if clean_domain not in ALLOWED_DOMAINS:
+        raise HTTPException(status_code=400, detail=f"Invalid domain '{clean_domain}'; allowed domains are: {ALLOWED_DOMAINS}")
 
     detail = topic_loader.load_topic_detail(clean_domain, clean_slug)
     if not detail:

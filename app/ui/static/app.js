@@ -393,13 +393,13 @@ function renderPinnedBar() {
   }
 
   container.innerHTML = pins.map(p => {
-    const slug = p.topic_id || p.topic_slug;
-    const domain = p.domain || 'general';
-    const prio = p.priority || 'high';
+    const slug = MicroHighlighter.escape(p.topic_id || p.topic_slug || '');
+    const domain = MicroHighlighter.escape(p.domain || 'general');
+    const prio = MicroHighlighter.escape(p.priority || 'high');
     return `
       <div class="pinned-chip" data-domain="${domain}" data-slug="${slug}">
         <span class="pinned-priority-dot ${prio}"></span>
-        <span>${slug}</span>
+        <span>${MicroHighlighter.escape(slug)}</span>
         <button class="unpin-btn" data-domain="${domain}" data-slug="${slug}" title="Unpin">×</button>
       </div>
     `;
@@ -462,7 +462,7 @@ const MicroHighlighter = {
 
   languages: {
     python: {
-      regex: /(#.*$)|("""[\s\S]*?"""|'''[\s\S]*?''')|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|(\s+)|([^a-zA-Z0-9_\s#"']+)/gm,
+      regex: /(#.*$)|("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|((?=a)b)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|(\s+)|([^a-zA-Z0-9_\s]+)/gm,
       keywords: new Set([
         'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue',
         'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from',
@@ -477,7 +477,7 @@ const MicroHighlighter = {
       ])
     },
     go: {
-      regex: /(\/\/.*$|\/\*[\s\S]*?\*\/)|(`[^`]*`|"(?:\\.|[^"\\])*")|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|(\s+)|([^a-zA-Z0-9_\s"'`\/]+|\/[^\/\*])/gm,
+      regex: /(\/\/.*$|\/\*[\s\S]*?\*\/)|(`[^`]*`|"(?:\\.|[^"\\])*")|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|((?=a)b)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|(\s+)|([^a-zA-Z0-9_\s]+)/gm,
       keywords: new Set([
         'break', 'case', 'chan', 'const', 'continue', 'default', 'defer',
         'else', 'fallthrough', 'for', 'func', 'go', 'goto', 'if', 'import',
@@ -491,7 +491,7 @@ const MicroHighlighter = {
       ])
     },
     rust: {
-      regex: /(\/\/.*$|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])')|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|(\s+)|([^a-zA-Z0-9_\s"'/]+|\/[^\/\*])/gm,
+      regex: /(\/\/.*$|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])')|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|((?=a)b)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|(\s+)|([^a-zA-Z0-9_\s]+)/gm,
       keywords: new Set([
         'as', 'async', 'await', 'break', 'const', 'continue', 'crate', 'dyn',
         'else', 'enum', 'extern', 'false', 'fn', 'for', 'if', 'impl', 'in',
@@ -507,7 +507,7 @@ const MicroHighlighter = {
       ])
     },
     yaml: {
-      regex: /(#.*$)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|(\b[a-zA-Z0-9_-]+\b(?=\s*:))|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|(\s+)|([^a-zA-Z0-9_\s#"']+)/gm,
+      regex: /(#.*$)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b0x[0-9a-fA-F]+\b|\b\d+(?:\.\d+)?\b)|(\b[a-zA-Z0-9_-]+\b(?=\s*:))|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)|(\s+)|([^a-zA-Z0-9_\s]+)/gm,
       keywords: new Set([
         'true', 'false', 'yes', 'no', 'on', 'off', 'null', '~',
         'TRUE', 'FALSE', 'YES', 'NO', 'ON', 'OFF', 'NULL'
@@ -525,21 +525,27 @@ const MicroHighlighter = {
     const re = new RegExp(config.regex.source, 'gm');
     let out = '';
     let m;
+    let lastIndex = 0;
     while ((m = re.exec(code)) !== null) {
-      const [full, comment, str, num, identOrKey, ident, ws, punct] = m;
+      if (m.index > lastIndex) {
+        out += this.escape(code.slice(lastIndex, m.index));
+      }
+      lastIndex = re.lastIndex;
+      const [full, comment, str, num, key, ident, ws, punct] = m;
       if (comment) out += `<span class="tok-comment">${this.escape(comment)}</span>`;
       else if (str) out += `<span class="tok-string">${this.escape(str)}</span>`;
       else if (num) out += `<span class="tok-number">${this.escape(num)}</span>`;
-      else if (l === 'yaml' && identOrKey) {
-        out += `<span class="tok-key">${this.escape(identOrKey)}</span>`;
-      } else if (ident || identOrKey) {
-        const id = ident || identOrKey;
-        if (config.keywords.has(id)) out += `<span class="tok-keyword">${this.escape(id)}</span>`;
-        else if (config.types.has(id)) out += `<span class="tok-type">${this.escape(id)}</span>`;
-        else out += this.escape(id);
+      else if (key) out += `<span class="tok-key">${this.escape(key)}</span>`;
+      else if (ident) {
+        if (config.keywords.has(ident)) out += `<span class="tok-keyword">${this.escape(ident)}</span>`;
+        else if (config.types.has(ident)) out += `<span class="tok-type">${this.escape(ident)}</span>`;
+        else out += this.escape(ident);
       } else if (ws) out += ws;
       else if (punct) out += `<span class="tok-punct">${this.escape(punct)}</span>`;
       else out += this.escape(full);
+    }
+    if (lastIndex < code.length) {
+      out += this.escape(code.slice(lastIndex));
     }
     return out;
   },

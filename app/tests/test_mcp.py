@@ -22,6 +22,12 @@ from app.mcp.tools import MCPToolRegistry
 from app.mcp.transports.stdio import run_stdio
 
 
+@pytest.fixture(autouse=True)
+def isolate_mcp_data_dir(tmp_path, monkeypatch):
+    """Ensure every test in test_mcp.py operates in an isolated temporary data directory."""
+    monkeypatch.setattr(settings, "data_dir", tmp_path)
+
+
 @pytest.fixture
 def mcp():
     return MCPServer()

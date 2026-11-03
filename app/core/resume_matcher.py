@@ -1,6 +1,7 @@
 """Role and resume alignment engine computing fit scores and customized loops."""
 
 import json
+import math
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -146,7 +147,13 @@ class ResumeMatcher:
         gaps = []
 
         for topic, (target_level, weight) in track_matrix.items():
-            user_level = ratings.get(topic, 1.0)
+            raw_level = ratings.get(topic, 1.0)
+            try:
+                user_level = float(raw_level)
+                if math.isnan(user_level) or math.isinf(user_level):
+                    user_level = 1.0
+            except (ValueError, TypeError):
+                user_level = 1.0
             fit_ratio = min(1.0, user_level / target_level)
             weighted_competency_fit += weight * fit_ratio
             delta = round(target_level - user_level, 2)

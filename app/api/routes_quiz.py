@@ -45,14 +45,14 @@ async def quiz_turn(req: QuizTurnRequest):
     user_answer = (req.user_answer or "").strip()
     topic = req.topic_slug or req.topic_id or "general"
 
-    # If session_id not given or does not exist, start one
-    session_id = req.session_id
-    if not session_id or not state.get_session(session_id):
-        # Initialize an implicit session
-        start_payload = adaptive_engine.start_exercise(topic_id=topic, initial_level=req.current_difficulty or "starter")
-        session_id = start_payload["session_id"]
-
     try:
+        # If session_id not given or does not exist, start one
+        session_id = req.session_id
+        if not session_id or not state.get_session(session_id):
+            # Initialize an implicit session
+            start_payload = adaptive_engine.start_exercise(topic_id=topic, initial_level=req.current_difficulty or "starter")
+            session_id = start_payload["session_id"]
+
         result = adaptive_engine.exercise_turn(
             session_id=session_id,
             exercise_id=req.exercise_id,

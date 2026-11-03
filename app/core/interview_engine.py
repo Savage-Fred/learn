@@ -172,7 +172,8 @@ class InterviewEngine:
             cur_idx = self.PHASES.index(cur_phase) if cur_phase in self.PHASES else 0
 
             # 2. Socratic Hint Request vs Strict No-Hints Mode
-            if turn_type == "request_hint" or ("hint" in message.lower() and len(message.split()) <= 4):
+            safe_msg = str(message or "")
+            if turn_type == "request_hint" or ("hint" in safe_msg.lower() and len(safe_msg.split()) <= 4):
                 if effective_mode == "no-hints":
                     interviewer_reply = (
                         "In this strict interview mode, hints are disabled. "

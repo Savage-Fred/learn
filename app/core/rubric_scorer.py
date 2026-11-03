@@ -88,6 +88,15 @@ class RubricScorer:
         },
     }
 
+    @classmethod
+    def normalize_company(cls, target_company: Optional[str]) -> str:
+        """Case-insensitive normalization for target companies."""
+        if not target_company:
+            return "Google"
+        s = str(target_company).strip()
+        mapping = {k.lower(): k for k in cls.COMPANY_PROFILES}
+        return mapping.get(s.lower(), s.title())
+
     def __init__(
         self,
         state_mgr: Optional[StateManager] = None,
@@ -98,8 +107,9 @@ class RubricScorer:
 
     def compute_company_weights(self, target_company: str) -> Dict[str, float]:
         """Compute company-calibrated weights normalized to 1.00."""
+        canonical_company = self.normalize_company(target_company)
         weights = dict(self.DIMENSION_WEIGHTS)
-        profile = self.COMPANY_PROFILES.get(target_company, {})
+        profile = self.COMPANY_PROFILES.get(canonical_company, {})
         for key, boost in profile.items():
             if key.endswith("_weight_boost") and isinstance(boost, (int, float)):
                 dim = key.replace("_weight_boost", "")
@@ -117,7 +127,7 @@ class RubricScorer:
         """Compute 5-dimension scorecard, hiring decision, and level recommendation."""
         session_id = session_state["session_id"]
         role_track = session_state.get("role_track", "faang_swe_l5_l6")
-        target_company = session_state.get("target_company", "Google")
+        target_company = self.normalize_company(session_state.get("target_company", "Google"))
         hints_used = session_state.get("hints_used", 0)
         topic = session_state.get("topic", "general")
 
@@ -173,7 +183,7 @@ class RubricScorer:
 
         # 1. Extract candidate turns & text
         candidate_turns = [t for t in dialogue if t.get("speaker") == "candidate"]
-        candidate_text = " ".join(t.get("message", "") for t in candidate_turns).strip()
+        candidate_text = " ".join((t.get("message") or "") for t in candidate_turns).strip()
         total_words = len(candidate_text.split())
         n_turns = len(candidate_turns)
 
