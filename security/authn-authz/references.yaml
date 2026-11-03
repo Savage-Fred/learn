@@ -1,0 +1,61 @@
+- id: google-zanzibar-2019
+  title: "Zanzibar: Google\u2019s Flexible, Highly Available, Consistent Authorization\
+    \ System"
+  authors:
+  - Ruoming Pang
+  - Ramakrishna Kotla
+  - Sanjay Ghemawat
+  - Mike Burrows
+  year: 2019
+  type: paper
+  canonical_url: https://research.google/pubs/pub48722/
+  citation_bibtex: "@inproceedings{pang2019zanzibar,\n  title={Zanzibar: Google's\
+    \ Flexible, Highly Available, Consistent Authorization System},\n  author={Pang,\
+    \ Ruoming and Kotla, Ramakrishna and Ghemawat, Sanjay and Burrows, Mike},\n  booktitle={USENIX\
+    \ Annual Technical Conference (ATC)},\n  pages={243--257},\n  year={2019}\n}"
+  key_invariants:
+  - External consistency eliminates the New-Enemy problem using Spanner timestamps
+    and Zookies.
+  - Relationship tuples define directed graph reachability for fine-grained permissions.
+  - Leopard indexing layer caches set-reachability to guarantee sub-millisecond evaluation.
+  role_relevance:
+  - Track-3-Security
+  - Track-1-SWE
+  interview_calibration:
+    company: Google / GDM
+    level: L6
+    round_type: Distributed Systems & Security Architecture
+    prompt_summary: Design a globally distributed authorization system providing 99.999%
+      availability, sub-millisecond latency, and external consistency for document
+      ACL updates.
+    expected_signals:
+    - Articulates the New-Enemy problem and snapshot consistency bounds
+    - Designs hierarchical caching and graph cycle detection
+- id: oauth-2-1-draft
+  title: The OAuth 2.1 Authorization Framework
+  authors:
+  - Dick Hardt
+  - Aaron Parecki
+  - Torsten Lodderstedt
+  year: 2024
+  type: rfc
+  canonical_url: https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/
+  citation_bibtex: "@misc{oauth21draft,\n  title={The OAuth 2.1 Authorization Framework},\n\
+    \  author={Hardt, Dick and Parecki, Aaron and Lodderstedt, Torsten},\n  year={2024},\n\
+    \  publisher={IETF OAuth Working Group}\n}"
+  key_invariants:
+  - PKCE is mandatory for all OAuth clients (confidential and public).
+  - Implicit grant and resource owner password credentials are deprecated.
+  - Refresh token rotation must invalidate previous tokens upon single use.
+  role_relevance:
+  - Track-3-Security
+  - Track-1-SWE
+  interview_calibration:
+    company: OpenAI
+    level: L5
+    round_type: Systems Security
+    prompt_summary: Design the authentication and authorization flow for third-party
+      developer integrations connecting to user accounts via OAuth 2.1.
+    expected_signals:
+    - Mandates PKCE with code_challenge and code_verifier
+    - Enforces refresh token rotation and token revocation endpoints

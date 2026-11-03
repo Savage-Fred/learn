@@ -1,0 +1,60 @@
+- id: kohavi-controlled-experiments-2020
+  title: 'Trustworthy Online Controlled Experiments: A Practical Guide to A/B Testing'
+  authors:
+  - Ron Kohavi
+  - Diane Tang
+  - Ya Xu
+  year: 2020
+  type: book
+  canonical_url: https://www.cambridge.org/core/books/trustworthy-online-controlled-experiments/D97B26382DEF7E123BEBF29C99026219
+  citation_bibtex: "@book{kohavi2020trustworthy,\n  title={Trustworthy Online Controlled\
+    \ Experiments: A Practical Guide to A/B Testing},\n  author={Kohavi, Ron and Tang,\
+    \ Diane and Xu, Ya},\n  year={2020},\n  publisher={Cambridge University Press}\n\
+    }"
+  key_invariants:
+  - Sample Ratio Mismatch (SRM) invalidates experiment conclusions.
+  - CUPED eliminates pre-experiment variance using covariance adjustments.
+  - SUTVA violations distort treatment effect estimates in marketplaces.
+  role_relevance:
+  - Track-1-SWE
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Netflix
+    level: L5
+    round_type: Experimentation & Statistical Design
+    prompt_summary: Design an experimentation platform for personalized video recommendation
+      algorithms accounting for shared network interference and continuous metric
+      monitoring.
+    expected_signals:
+    - Identifies SUTVA violation and proposes switchback or cluster randomization
+    - Calculates sample size using power analysis and applies CUPED
+- id: deng-cuped-2013
+  title: Improving the Sensitivity of Online Controlled Experiments by Utilizing Pre-Experiment
+    Data
+  authors:
+  - Alex Deng
+  - Ya Xu
+  - Ron Kohavi
+  - Toby Walker
+  year: 2013
+  type: paper
+  canonical_url: https://dl.acm.org/doi/10.1145/2433396.2433413
+  citation_bibtex: "@inproceedings{deng2013improving,\n  title={Improving the Sensitivity\
+    \ of Online Controlled Experiments by Utilizing Pre-Experiment Data},\n  author={Deng,\
+    \ Alex and Xu, Ya and Kohavi, Ron and Walker, Toby},\n  booktitle={WSDM},\n  pages={445--454},\n\
+    \  year={2013}\n}"
+  key_invariants:
+  - CUPED variance reduction factor is strictly 1 - rho^2.
+  - Estimator is provably unbiased under pre-experiment randomization.
+  role_relevance:
+  - Track-1-SWE
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Meta
+    level: L5
+    round_type: Data Systems Architecture
+    prompt_summary: Explain how variance reduction techniques allow high-frequency
+      product experimentation without increasing user sample sizes.
+    expected_signals:
+    - Derives CUPED optimal theta from ordinary least squares regression
+    - Identifies conditions where pre-experiment data is unavailable

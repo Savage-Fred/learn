@@ -1,0 +1,55 @@
+- id: clrs-4th-ed-2022
+  title: Introduction to Algorithms
+  authors:
+  - Thomas H. Cormen
+  - Charles E. Leiserson
+  - Ronald L. Rivest
+  - Clifford Stein
+  year: 2022
+  type: book
+  canonical_url: https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/
+  citation_bibtex: "@book{clrs2022algorithms,\n  title={Introduction to Algorithms},\n\
+    \  author={Cormen, Thomas H and Leiserson, Charles E and Rivest, Ronald L and\
+    \ Stein, Clifford},\n  year={2022},\n  edition={4th},\n  publisher={MIT Press}\n\
+    }"
+  key_invariants:
+  - Potential method amortized analysis guarantees operational upper bounds.
+  - Max-Flow Min-Cut Theorem establishes linear programming duality in graphs.
+  role_relevance:
+  - Track-1-SWE
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Google / GDM
+    level: L5
+    round_type: Algorithmic Rigor
+    prompt_summary: Given a directed graph of server capacities and network latencies,
+      find the minimum-cost maximum-flow under dynamic edge cost updates.
+    expected_signals:
+    - Formal proof of flow conservation and capacity constraints
+    - Correct asymptotic runtime derivation in terms of V and E
+- id: kleinberg-tardos-2005
+  title: Algorithm Design
+  authors:
+  - Jon Kleinberg
+  - "\xC9va Tardos"
+  year: 2005
+  type: book
+  canonical_url: https://www.pearson.com/en-us/subject-catalog/p/algorithm-design/P200000003260
+  citation_bibtex: "@book{kleinberg2005algorithm,\n  title={Algorithm Design},\n \
+    \ author={Kleinberg, Jon and Tardos, \\'Eva},\n  year={2005},\n  publisher={Addison-Wesley}\n\
+    }"
+  key_invariants:
+  - Bipartite matching and baseball elimination reduce to Max-Flow.
+  - Reduction from 3-SAT to independent set proves NP-completeness.
+  role_relevance:
+  - Track-1-SWE
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Meta
+    level: L5
+    round_type: Speed Coding
+    prompt_summary: Solve maximum bipartite matching with worker preferences and task
+      capacities.
+    expected_signals:
+    - Reduces problem to max-flow with source/sink supernodes
+    - Implements working Dinic or Ford-Fulkerson within 30 minutes

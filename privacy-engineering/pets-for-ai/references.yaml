@@ -1,0 +1,92 @@
+- id: shokri-mia-2017
+  title: Membership Inference Attacks Against Machine Learning Models
+  authors:
+  - Reza Shokri
+  - Marco Stronati
+  - Congzheng Song
+  - Vitaly Shmatikov
+  year: 2017
+  type: paper
+  canonical_url: https://ieeexplore.ieee.org/document/7958568
+  citation_bibtex: "@inproceedings{shokri2017membership,\n  title={Membership Inference\
+    \ Attacks Against Machine Learning Models},\n  author={Shokri, Reza and Stronati,\
+    \ Marco and Song, Congzheng and Shmatikov, Vitaly},\n  booktitle={IEEE Symposium\
+    \ on Security and Privacy (SP)},\n  pages={3--18},\n  year={2017}\n}"
+  key_invariants:
+  - Overfitting in machine learning models directly leaks membership information.
+  - Shadow models trained on similar data distributions accurately predict membership.
+  role_relevance:
+  - Track-2-Privacy
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Apple
+    level: L6
+    round_type: Privacy Engineering Architecture
+    prompt_summary: Design the privacy verification and attestation pipeline for an
+      offloaded LLM inference cluster guaranteeing zero data retention and verifiable
+      transparency logs.
+    expected_signals:
+    - Delineates cryptographic TEE attestation from heuristic privacy policies
+    - Applies membership inference auditing on fine-tuned model artifacts
+- id: carlini-extracting-training-data-2021
+  title: Extracting Training Data from Large Language Models
+  authors:
+  - Nicholas Carlini
+  - "Florian Tram\xE8r"
+  - Eric Wallace
+  - Matthew Jagielski
+  - Ariel Herbert-Voss
+  year: 2021
+  type: paper
+  canonical_url: https://www.usenix.org/conference/usenixsecurity21/presentation/carlini-extracting
+  citation_bibtex: "@inproceedings{carlini2021extracting,\n  title={Extracting Training\
+    \ Data from Large Language Models},\n  author={Carlini, Nicholas and Tram{\\`e}r,\
+    \ Florian and Wallace, Eric and Jagielski, Matthew and Herbert-Voss, Ariel and\
+    \ others},\n  booktitle={USENIX Security Symposium},\n  pages={2633--2650},\n\
+    \  year={2021}\n}"
+  key_invariants:
+  - LLMs memorize training data verbatim across large model scales.
+  - Perplexity ratio comparisons between base and zlib-compressed text reveal memorized
+    PII.
+  role_relevance:
+  - Track-2-Privacy
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: OpenAI
+    level: L5
+    round_type: AI Safety & Privacy Systems
+    prompt_summary: Explain how training data extraction attacks exploit memorization
+      in LLMs and evaluate mitigations during pre-training vs post-training.
+    expected_signals:
+    - Articulates deduplication of training datasets as the highest-leverage defense
+    - Analyzes DP-SGD trade-offs on model perplexity and training throughput
+- id: bonawitz-secagg-2017
+  title: Practical Secure Aggregation for Privacy-Preserving Machine Learning
+  authors:
+  - Keith Bonawitz
+  - Vladimir Ivanov
+  - Ben Kreuter
+  - Antonio Marcedone
+  year: 2017
+  type: paper
+  canonical_url: https://dl.acm.org/doi/10.1145/3133956.3133982
+  citation_bibtex: "@inproceedings{bonawitz2017practical,\n  title={Practical Secure\
+    \ Aggregation for Privacy-Preserving Machine Learning},\n  author={Bonawitz, Keith\
+    \ and Ivanov, Vladimir and Kreuter, Ben and Marcedone, Antonio and others},\n\
+    \  booktitle={ACM CCS},\n  pages={1175--1191},\n  year={2017}\n}"
+  key_invariants:
+  - Pairwise masking guarantees zero server visibility of individual client updates.
+  - Threshold Shamir secret sharing resolves mobile client dropout without breaking
+    aggregation.
+  role_relevance:
+  - Track-2-Privacy
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Google / GDM
+    level: L5
+    round_type: Distributed Cryptographic Protocols
+    prompt_summary: Design a federated learning aggregation protocol that protects
+      mobile device gradients from an honest-but-curious server.
+    expected_signals:
+    - Applies SecAgg protocol with Diffie-Hellman key exchange
+    - Addresses client dropouts via Shamir secret sharing

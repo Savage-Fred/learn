@@ -1,0 +1,52 @@
+- id: klabnik-rust-book-2023
+  title: The Rust Programming Language
+  authors:
+  - Steve Klabnik
+  - Carol Nichols
+  year: 2023
+  type: book
+  canonical_url: https://doc.rust-lang.org/book/
+  citation_bibtex: "@book{klabnik2023rust,\n  title={The Rust Programming Language},\n\
+    \  author={Klabnik, Steve and Nichols, Carol},\n  year={2023},\n  edition={2nd},\n\
+    \  publisher={No Starch Press}\n}"
+  key_invariants:
+  - Ownership and borrowing eliminate dangling pointers and data races at compile
+    time.
+  - Trait objects enable dynamic dispatch while preserving memory safety.
+  role_relevance:
+  - Track-1-SWE
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Anthropic
+    level: L5
+    round_type: Systems Architecture & Code Taste
+    prompt_summary: Implement a high-throughput worker pool in Rust that distributes
+      work across threads with graceful shutdown on drop.
+    expected_signals:
+    - Idiomatic ownership transfers without unnecessary clones
+    - Clean RAII shutdown implementation using Drop trait
+- id: mara-bos-atomics-2023
+  title: 'Rust Atomics and Locks: Low-Level Concurrency in Practice'
+  authors:
+  - Mara Bos
+  year: 2023
+  type: book
+  canonical_url: https://marabos.nl/atomics/
+  citation_bibtex: "@book{bos2023atomics,\n  title={Rust Atomics and Locks: Low-Level\
+    \ Concurrency in Practice},\n  author={Bos, Mara},\n  year={2023},\n  publisher={O'Reilly\
+    \ Media}\n}"
+  key_invariants:
+  - Acquire-Release ordering establishes happens-before relationships between threads.
+  - UnsafeCell is the only legal primitive for interior mutability in Rust.
+  role_relevance:
+  - Track-1-SWE
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Databricks
+    level: L5
+    round_type: Low-Level Concurrency & Systems
+    prompt_summary: Implement a concurrent lock-free ring buffer in Rust with custom
+      atomics and explicit memory ordering.
+    expected_signals:
+    - Correct choice of Acquire, Release, and Relaxed orderings
+    - Safe implementation of Send and Sync for custom types

@@ -1,0 +1,53 @@
+- id: donovan-kernighan-go-2015
+  title: The Go Programming Language
+  authors:
+  - Alan A. A. Donovan
+  - Brian W. Kernighan
+  year: 2015
+  type: book
+  canonical_url: https://www.gopl.io/
+  citation_bibtex: "@book{donovan2015go,\n  title={The Go Programming Language},\n\
+    \  author={Donovan, Alan A A and Kernighan, Brian W},\n  year={2015},\n  publisher={Addison-Wesley}\n\
+    }"
+  key_invariants:
+  - Channels facilitate CSP concurrency synchronization.
+  - Context package carries deadlines, cancellation signals, and request values across
+    API boundaries.
+  role_relevance:
+  - Track-1-SWE
+  - Track-3-Security
+  interview_calibration:
+    company: Google / GDM
+    level: L5
+    round_type: Cloud Systems & Infrastructure Coding
+    prompt_summary: Build a distributed rate limiter and load-shedding reverse proxy
+      in Go with sliding-window counters, context cancellation, and zero goroutine
+      leaks.
+    expected_signals:
+    - Clean context propagation down all HTTP handlers
+    - Demonstrates zero goroutine leaks under benchmark tests
+- id: vyukov-go-scheduler-2012
+  title: Scalable Go Scheduler Design Doc
+  authors:
+  - Dmitry Vyukov
+  year: 2012
+  type: tech_blog
+  canonical_url: https://golang.org/s/go11sched
+  citation_bibtex: "@misc{vyukov2012scheduler,\n  title={Scalable Go Scheduler Design\
+    \ Doc},\n  author={Vyukov, Dmitry},\n  year={2012},\n  url={https://golang.org/s/go11sched}\n\
+    }"
+  key_invariants:
+  - GMP scheduler decouples logical processors (P) from OS threads (M).
+  - Work-stealing balances run queues across CPU cores without global lock contention.
+  role_relevance:
+  - Track-1-SWE
+  - Track-3-Security
+  interview_calibration:
+    company: OpenAI
+    level: L5
+    round_type: High-Throughput Services
+    prompt_summary: Explain how the Go runtime handles a goroutine executing a blocking
+      system call vs an intensive CPU loop.
+    expected_signals:
+    - Articulates M handoff during blocking syscalls
+    - Explains cooperative preemption at function prologues and signal preemption
