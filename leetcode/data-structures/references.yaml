@@ -1,0 +1,57 @@
+- id: herlihy-shavit-2020
+  title: The Art of Multiprocessor Programming
+  authors:
+  - Maurice Herlihy
+  - Nir Shavit
+  - Victor Luchangco
+  - Michael Spear
+  year: 2020
+  type: book
+  canonical_url: https://www.sciencedirect.com/book/9780124159501/the-art-of-multiprocessor-programming
+  citation_bibtex: "@book{herlihy2020art,\n  title={The Art of Multiprocessor Programming},\n\
+    \  author={Herlihy, Maurice and Shavit, Nir and Luchangco, Victor and Spear, Michael},\n\
+    \  year={2020},\n  edition={2nd},\n  publisher={Morgan Kaufmann}\n}"
+  key_invariants:
+  - Lock-free Michael-Scott queues maintain consistency via cooperative CAS advancement.
+  - ABA mitigation requires hazard pointers or epoch-based reclamation.
+  role_relevance:
+  - Track-1-SWE
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Databricks
+    level: L5
+    round_type: Concurrency & Memory Systems
+    prompt_summary: Implement an in-memory B+ Tree with optimistic lock coupling (latch
+      crabbing) for high-concurrency read-heavy workloads.
+    expected_signals:
+    - Articulates difference between reader-writer locks and lock crabbing
+    - Avoids deadlocks during root-node splits
+- id: hnsw-malkov-2018
+  title: Efficient and robust approximate nearest neighbor search using Hierarchical
+    Navigable Small World graphs
+  authors:
+  - Yury A. Malkov
+  - Dmitry A. Yashunin
+  year: 2018
+  type: paper
+  canonical_url: https://ieeexplore.ieee.org/document/8594632
+  citation_bibtex: "@article{malkov2018efficient,\n  title={Efficient and robust approximate\
+    \ nearest neighbor search using Hierarchical Navigable Small World graphs},\n\
+    \  author={Malkov, Yury A and Yashunin, Dmitry A},\n  journal={IEEE Transactions\
+    \ on Pattern Analysis and Machine Intelligence},\n  volume={42},\n  number={4},\n\
+    \  pages={824--836},\n  year={2018},\n  publisher={IEEE}\n}"
+  key_invariants:
+  - Multi-layer proximity graphs enable logarithmic O(log N) nearest neighbor search.
+  - Heuristic edge selection maintains small-world navigability across high clustering.
+  role_relevance:
+  - Track-1-SWE
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: OpenAI
+    level: L5
+    round_type: Vector Search Systems
+    prompt_summary: Design an approximate nearest neighbor index serving 10,000 queries
+      per second over 50 million 1536-dimensional vectors.
+    expected_signals:
+    - Proposes HNSW or IVF-PQ with quantitative RAM analysis
+    - Explains trade-off between recall, index build time, and query latency

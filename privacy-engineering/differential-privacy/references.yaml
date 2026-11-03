@@ -1,0 +1,85 @@
+- id: dwork-roth-dp-2014
+  title: The Algorithmic Foundations of Differential Privacy
+  authors:
+  - Cynthia Dwork
+  - Aaron Roth
+  year: 2014
+  type: book
+  canonical_url: https://www.cis.upenn.edu/~aaroth/Papers/privacybook.pdf
+  citation_bibtex: "@book{dwork2014algorithmic,\n  title={The Algorithmic Foundations\
+    \ of Differential Privacy},\n  author={Dwork, Cynthia and Roth, Aaron},\n  year={2014},\n\
+    \  publisher={Foundations and Trends in Theoretical Computer Science}\n}"
+  key_invariants:
+  - "Definition of (\u03B5, \u03B4)-Differential Privacy."
+  - Laplace mechanism calibrated to L1 sensitivity.
+  - 'Post-processing invariance: Any computation on a DP output remains DP.'
+  role_relevance:
+  - Track-2-Privacy
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Google / GDM
+    level: L6
+    round_type: Privacy Theory & Systems Architecture
+    prompt_summary: "Prove that the Laplace mechanism satisfies pure \u03B5-differential\
+      \ privacy, and derive the optimal noise scale for counting queries."
+    expected_signals:
+    - Formal proof using probability density ratio bounds
+    - Calculates sensitivity of counting queries as Delta = 1
+- id: abadi-dpsgd-2016
+  title: Deep Learning with Differential Privacy
+  authors:
+  - Martin Abadi
+  - Andy Chu
+  - Ian Goodfellow
+  - H. Brendan McMahan
+  - Ilya Mironov
+  - Kunal Talwar
+  - Li Zhang
+  year: 2016
+  type: paper
+  canonical_url: https://dl.acm.org/doi/10.1145/2976749.2978318
+  citation_bibtex: "@inproceedings{abadi2016deep,\n  title={Deep Learning with Differential\
+    \ Privacy},\n  author={Abadi, Martin and Chu, Andy and Goodfellow, Ian and McMahan,\
+    \ H Brendan and Mironov, Ilya and Talwar, Kunal and Zhang, Li},\n  booktitle={ACM\
+    \ CCS},\n  pages={308--318},\n  year={2016}\n}"
+  key_invariants:
+  - Per-sample gradient clipping bounds L2 sensitivity to C.
+  - Moments Accountant bounds cumulative privacy loss under Gaussian perturbation.
+  role_relevance:
+  - Track-2-Privacy
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: OpenAI
+    level: L5
+    round_type: Research Engineering & Privacy Systems
+    prompt_summary: Design the training pipeline for differentially private fine-tuning
+      of an LLM, explaining per-sample gradient clipping memory optimization.
+    expected_signals:
+    - Articulates why standard backpropagation computes batch-averaged gradients
+    - Explains Ghost Clipping or Opacus micro-batching optimizations
+- id: mironov-rdp-2017
+  title: "R\xE9nyi Differential Privacy"
+  authors:
+  - Ilya Mironov
+  year: 2017
+  type: paper
+  canonical_url: https://ieeexplore.ieee.org/document/8049725
+  citation_bibtex: "@inproceedings{mironov2017renyi,\n  title={R\\'enyi Differential\
+    \ Privacy},\n  author={Mironov, Ilya},\n  booktitle={IEEE Computer Security Foundations\
+    \ Symposium (CSF)},\n  pages={263--275},\n  year={2017}\n}"
+  key_invariants:
+  - "R\xE9nyi divergence of order alpha enables strict additive composition."
+  - "Conversion from (alpha, D_alpha)-RDP to (\u03B5, \u03B4)-DP provides optimal\
+    \ tail bounds."
+  role_relevance:
+  - Track-2-Privacy
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Apple
+    level: L6
+    round_type: Advanced Privacy Foundations
+    prompt_summary: "Explain why R\xE9nyi Differential Privacy provides strictly tighter\
+      \ composition bounds than Advanced Composition for Gaussian mechanisms."
+    expected_signals:
+    - "Proves linear additivity of R\xE9nyi divergence under independent mechanisms"
+    - "Calculates conversion back to (\u03B5, \u03B4)-DP"

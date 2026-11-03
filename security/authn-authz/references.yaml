@@ -1,0 +1,75 @@
+- id: google-zanzibar-2019
+  title: "Zanzibar: Google\u2019s Consistent, Global Authorization System"
+  authors:
+  - Ruoming Pang
+  - Ramon Caceres
+  - Mike Burrows
+  - Zhifeng Chen
+  - Pratik Dave
+  - Nathan Germer
+  - Alexander Golynski
+  - Kevin Graney
+  - Nina Kang
+  - Lea Kissner
+  - Jeffrey L. Korn
+  - Abhishek Parmar
+  - Christina D. Richards
+  - Mengzhi Wang
+  year: 2019
+  type: paper
+  canonical_url: https://www.usenix.org/conference/atc19/presentation/pang
+  citation_bibtex: "@inproceedings {234962,\n\tauthor = {Ruoming Pang and Ramon Caceres\
+    \ and Mike Burrows and Zhifeng Chen and Pratik Dave and Nathan Germer and Alexander\
+    \ Golynski and Kevin Graney and Nina Kang and Lea Kissner and Jeffrey L. Korn\
+    \ and Abhishek Parmar and Christina D. Richards and Mengzhi Wang},\n\ttitle =\
+    \ {Zanzibar: {Google{\\textquoteright}s} Consistent, Global Authorization System},\n\
+    \tbooktitle = {2019 USENIX Annual Technical Conference (USENIX ATC 19)},\n\tyear\
+    \ = {2019},\n\tisbn = {978-1-939133-03-8},\n\taddress = {Renton, WA},\n\tpages\
+    \ = {33--46},\n\turl = {https://www.usenix.org/conference/atc19/presentation/pang},\n\
+    \tpublisher = {USENIX Association},\n\tmonth = jul\n}"
+  key_invariants:
+  - External consistency eliminates the New-Enemy problem using Spanner timestamps
+    and Zookies.
+  - Relationship tuples define directed graph reachability for fine-grained permissions.
+  - Leopard indexing layer caches set-reachability to guarantee sub-millisecond evaluation.
+  role_relevance:
+  - Track-3-Security
+  - Track-1-SWE
+  interview_calibration:
+    company: Google / GDM
+    level: L6
+    round_type: Distributed Systems & Security Architecture
+    prompt_summary: Design a globally distributed authorization system providing 99.999%
+      availability, sub-millisecond latency, and external consistency for document
+      ACL updates.
+    expected_signals:
+    - Articulates the New-Enemy problem and snapshot consistency bounds
+    - Designs hierarchical caching and graph cycle detection
+- id: oauth-2-1-draft
+  title: The OAuth 2.1 Authorization Framework
+  authors:
+  - Dick Hardt
+  - Aaron Parecki
+  - Torsten Lodderstedt
+  year: 2024
+  type: rfc
+  canonical_url: https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/
+  citation_bibtex: "@misc{oauth21draft,\n  title={The OAuth 2.1 Authorization Framework},\n\
+    \  author={Hardt, Dick and Parecki, Aaron and Lodderstedt, Torsten},\n  year={2024},\n\
+    \  publisher={IETF OAuth Working Group}\n}"
+  key_invariants:
+  - PKCE is mandatory for all OAuth clients (confidential and public).
+  - Implicit grant and resource owner password credentials are deprecated.
+  - Refresh token rotation must invalidate previous tokens upon single use.
+  role_relevance:
+  - Track-3-Security
+  - Track-1-SWE
+  interview_calibration:
+    company: OpenAI
+    level: L5
+    round_type: Systems Security
+    prompt_summary: Design the authentication and authorization flow for third-party
+      developer integrations connecting to user accounts via OAuth 2.1.
+    expected_signals:
+    - Mandates PKCE with code_challenge and code_verifier
+    - Enforces refresh token rotation and token revocation endpoints

@@ -1,0 +1,79 @@
+- id: ramalho-fluent-python-2022
+  title: 'Fluent Python: Clear, Concise, and Effective Programming'
+  authors:
+  - Luciano Ramalho
+  year: 2022
+  type: book
+  canonical_url: https://www.oreilly.com/library/view/fluent-python-2nd/9781492056348/
+  citation_bibtex: "@book{ramalho2022fluent,\n  title={Fluent Python: Clear, Concise,\
+    \ and Effective Programming},\n  author={Ramalho, Luciano},\n  year={2022},\n\
+    \  edition={2nd},\n  publisher={O'Reilly Media}\n}"
+  key_invariants:
+  - Data model dunder protocols enable structural duck typing without inheritance.
+  - Generators provide O(1) auxiliary memory streaming computation.
+  - Special method dispatch is optimized at the CPython bytecode layer.
+  role_relevance:
+  - Track-1-SWE
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: OpenAI
+    level: L5
+    round_type: Practical Systems Coding
+    prompt_summary: Implement an in-memory streaming tensor batcher with zero-copy
+      slices, thread-safe backpressure, and graceful generator shutdown.
+    expected_signals:
+    - Clean Protocol implementation using PEP 544
+    - O(1) auxiliary memory consumption
+    - Proper handling of GeneratorExit and exception propagation
+- id: pep-544-protocols
+  title: "PEP 544 \u2013 Protocols: Structural subtyping (static duck typing)"
+  authors:
+  - Ivan Levkivskyi
+  - Jukka Lehtosalo
+  - "\u0141ukasz Langa"
+  year: 2018
+  type: rfc
+  canonical_url: https://peps.python.org/pep-0544/
+  citation_bibtex: "@misc{pep544protocols,\n  title={PEP 544 -- Protocols: Structural\
+    \ subtyping},\n  author={Levkivskyi, Ivan and Lehtosalo, Jukka and Langa, \\L{}ukasz},\n\
+    \  year={2018},\n  url={https://peps.python.org/pep-0544/}\n}"
+  key_invariants:
+  - Static type checkers verify subtype compatibility via structure rather than inheritance.
+  - '@runtime_checkable allows isinstance() verification of protocol methods at runtime.'
+  role_relevance:
+  - Track-1-SWE
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Google / GDM
+    level: L5
+    round_type: Modular Software Design
+    prompt_summary: Define an extensible metrics logging pipeline accepting arbitrary
+      sinks conforming to a typed Protocol contract.
+    expected_signals:
+    - Idiomatic typing.Protocol definition
+    - Avoidance of rigid ABC inheritance where duck typing suffices
+- id: slatkin-effective-python-2019
+  title: 'Effective Python: 90 Specific Ways to Write Better Python'
+  authors:
+  - Brett Slatkin
+  year: 2019
+  type: book
+  canonical_url: https://effectivepython.com/
+  citation_bibtex: "@book{slatkin2019effective,\n  title={Effective Python: 90 Specific\
+    \ Ways to Write Better Python},\n  author={Slatkin, Brett},\n  year={2019},\n\
+    \  edition={2nd},\n  publisher={Addison-Wesley}\n}"
+  key_invariants:
+  - Compose generators instead of loading full lists into memory.
+  - Use __slots__ to eliminate per-instance dictionary memory overhead.
+  role_relevance:
+  - Track-1-SWE
+  - Track-4-Research-Eng
+  interview_calibration:
+    company: Anthropic
+    level: L4
+    round_type: Pair Programming
+    prompt_summary: Refactor a memory-heavy batch data processing script into a bounded
+      streaming pipeline with clean error boundaries.
+    expected_signals:
+    - Identifies memory leak in list accumulations
+    - Replaces intermediate buffers with itertools.islice/chain
