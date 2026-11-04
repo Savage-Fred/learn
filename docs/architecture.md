@@ -729,40 +729,23 @@ Enables real-time bidirectional streaming for conversational mock interviews:
 
 ---
 
-## 9. Model Context Protocol (MCP) Server Specification
+## 9. Model Context Protocol (MCP) Server
 
-The MCP server is built using the official Python `mcp` SDK, exposing JSON-RPC 2.0 tools over stdio and Streamable HTTP transports. It provides 11 specialized tools with explicit session lifecycle operations.
+The subscription-client server is `app/mcp/subscription.py`, launched with
+`learn-mcp` or `python -m app.mcp`. It uses the official Python MCP SDK for stdio
+and Streamable HTTP. The connected AI client owns teaching, interview dialogue,
+exercise selection and assessment; this server makes no model calls.
 
-### 9.1 Tool Inventory
+The current tool inventory, installation and client setup are maintained in
+[the MCP guide](mcp.md). Curriculum-reading tools provide complete source
+exercises and rubrics. Client assessments are stored atomically outside git,
+label their inference source, and use stable IDs for safe retries. Shared pins
+use the existing StateManager. Technical durable notes go to topic markdown
+without an automatic commit.
 
-```mermaid
-classDiagram
-    class LearnMCPServer {
-        +learn_list_topics(domain)
-        +learn_ask_topic_deep_dive(topic_id, question)
-        +learn_pin_topic(topic_id, priority, notes)
-        +learn_get_pinned_topics()
-        +learn_record_durable_learning(topic_id, title, mental_model, invariants, references, code)
-        +learn_query_proficiency_gaps(role_track, target_company)
-        +learn_start_adaptive_exercise(topic_id, tier)
-        +learn_run_adaptive_exercise_turn(exercise_id, user_response)
-        +learn_start_mock_interview(role_track, company, topic, timing_mode, assistance_mode, probing_mode)
-        +learn_run_mock_interview_turn(session_id, message, turn_type)
-        +learn_analyze_job_description(job_description_text, resume_text)
-    }
-```
-
-1. **`learn_list_topics`**: Enumerate curriculum domains, topics, difficulty tiers, and user completion status.
-2. **`learn_ask_topic_deep_dive`**: Query axiomatic mental models and citable references on any topic.
-3. **`learn_pin_topic`**: Add high-priority topic to persistent dashboard (`$LEARN_DATA_DIR/pinned_topics.json`).
-4. **`learn_get_pinned_topics`**: Retrieve active priorities, target dates, and gap notes.
-5. **`learn_record_durable_learning`**: Redact PII and write structured markdown with valid frontmatter to topic `learnings/` directory for user review.
-6. **`learn_query_proficiency_gaps`**: Compute deltas between user profile and calibrated company bars (L4–L6).
-7. **`learn_start_adaptive_exercise`**: Initialize an adaptive exercise session for a given topic and tier, returning `exercise_id`, problem prompt, and invariant objectives.
-8. **`learn_run_adaptive_exercise_turn`**: Submit problem response, execute rubric grading, update rating in `$LEARN_DATA_DIR/user_profile.json`, and scale difficulty.
-9. **`learn_start_mock_interview`**: Initialize a full-scale mock interview session with configured role track, company, topic, and orthogonal modes (`timing_mode`, `assistance_mode`, `probing_mode`), returning `session_id` and initial interviewer prompt.
-10. **`learn_run_mock_interview_turn`**: Advance conversational mock interview turn with candidate dialogue, code submission, or hint request.
-11. **`learn_analyze_job_description`**: Ingest raw job description text, extract core competencies, score match against resume, generate tailored interview loop.
+The web application's existing handcrafted dispatcher and SSE endpoints remain
+legacy interfaces with their previous tool behavior. They are separate from the
+standalone SDK server and are not the subscription-client entrypoint.
 
 ---
 

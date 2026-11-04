@@ -1,18 +1,9 @@
-# ==============================================================================
-# Savage-Fred / Learn MCP Configuration Snippet for OpenAI Codex
-# ==============================================================================
-# Paste into ~/.codex/config.toml to enable Learn MCP tools in Codex / Astra / Sol.
-#
-# Mode 1: Stdio Transport (Default, invokes standalone Python process)
+# Replace /absolute/path/to/learn with the implementation checkout used to install .[dev].
+# The installed executable works from any client working directory.
 [mcp_servers.learn]
-command = "python3"
-args = ["-m", "app.mcp"]
-cwd = "/home/will/dev/learn"
+command = "/absolute/path/to/learn/.venv/bin/learn-mcp"
 
-[mcp_servers.learn.env]
-PYTHONPATH = "/home/will/dev/learn"
-LEARN_DATA_DIR = "/home/will/.local/share/learn"
-
-# Mode 2: SSE Transport (Active when FastAPI web server is running on port 8795)
-# [mcp_servers.learn_sse]
-# url = "http://127.0.0.1:8795/sse"
+# Optional remote connection instead of the stdio table above:
+# [mcp_servers.learn]
+# url = "http://127.0.0.1:8797/mcp"
+# bearer_token_env_var = "LEARN_API_TOKEN"

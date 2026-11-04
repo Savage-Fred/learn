@@ -27,6 +27,10 @@ The platform orchestrates Claude, Codex (ChatGPT/Astra/Sol), and Gemini/Antigrav
 
 ## Installation & Development
 
+To learn through your subscription AI client, start with the
+[MCP setup guide](docs/mcp.md). The connected client teaches and evaluates;
+Learn supplies curriculum and saves progress without another model call.
+
 ```bash
 # Setup virtual environment with Python 3.13
 uv venv .venv --python 3.13
