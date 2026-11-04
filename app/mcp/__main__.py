@@ -1,7 +1,6 @@
-"""CLI runner for python -m app.mcp."""
+"""Run the subscription-client MCP server."""
 
-import sys
-from app.mcp.transports.stdio import run_stdio
+from app.mcp.subscription import main
 
 if __name__ == "__main__":
-    run_stdio()
+    main()
