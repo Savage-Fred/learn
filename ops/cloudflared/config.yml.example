@@ -1,0 +1,51 @@
+# ==============================================================================
+# Cloudflare Tunnel Configuration Example for learn.willmccarty.io
+# ==============================================================================
+# Routes public traffic for learn.willmccarty.io to the local FastAPI backend
+# and WebSocket stream running on 127.0.0.1:8795.
+#
+# Tunnel credentials should reside outside version control (e.g. /etc/cloudflared/
+# or ~/.cloudflared/). Replace YOUR_TUNNEL_UUID with your actual Cloudflare Tunnel ID.
+
+tunnel: YOUR_TUNNEL_UUID
+credentials-file: /etc/cloudflared/YOUR_TUNNEL_UUID.json
+
+ingress:
+  # 1. Primary ingress rule routing learn.willmccarty.io to local FastAPI harness
+  - hostname: learn.willmccarty.io
+    service: http://127.0.0.1:8795
+    originRequest:
+      connectTimeout: 30s
+      keepAliveTimeout: 90s
+      noTLSVerify: false
+      http2Origin: true
+
+  # 2. Catch-all fallback rule (required by cloudflared)
+  - service: http_status:404
+
+# ==============================================================================
+# Cloudflare Access Configuration Runbook:
+# ==============================================================================
+# To safeguard the local CLI harness and backend when exposing learn.willmccarty.io:
+#
+# 1. Zero Trust Dashboard -> Access -> Applications -> Add an Application:
+#    - Type: Self-hosted
+#    - Application name: learn-webui
+#    - Application domain: learn.willmccarty.io
+#    - Identity providers: GitHub / Google Workspace
+#
+# 2. Access Policies:
+#    - Policy 1 (Interactive Engineer):
+#      - Action: Allow
+#      - Rule: Emails ending in your personal email domain, or specific GitHub handle.
+#    - Policy 2 (Frontier AI Agent Harness: claude, codex, agy):
+#      - Action: Non-identity / Service Auth
+#      - Create Service Token named "learn-cli-agent"
+#      - Inject headers in automated agents:
+#        CF-Access-Client-Id: <TOKEN_ID>
+#        CF-Access-Client-Secret: <TOKEN_SECRET>
+#        Authorization: Bearer <LEARN_API_TOKEN>
+#
+# 3. WebSocket Streaming:
+#    - Under Application Settings -> Additional Settings, ensure "WebSockets" is ENABLED
+#      to allow real-time LLM token streaming over wss://learn.willmccarty.io/ws/stream.
