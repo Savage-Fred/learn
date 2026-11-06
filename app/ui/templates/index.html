@@ -3,23 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <meta name="description" content="Savage-Fred/learn — Local-first L4-L6 technical mastery and interview preparation engine">
-  <title>Savage-Fred / learn — Technical Mastery &amp; Interview Engine</title>
-  
-  <!-- Zero External CDN Dependencies -->
+  <link rel="canonical" href="https://learn.willmccarty.io/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <title>Dashboard · learn.willmccarty.io — Technical Mastery &amp; Interview Engine (Savage-Fred/learn)</title>
+
+  <!-- Pure CSS3 Design System — Zero CDN Dependencies -->
   <link rel="stylesheet" href="/static/styles.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
 </head>
 <body class="app-body">
   <div id="app" class="app-layout">
     <!-- Top Navigation Header -->
     <header class="top-nav" role="banner">
+      <a href="#main-content" class="skip-link visually-hidden">Skip to main content</a>
+
       <div class="brand-section">
-        <a href="#dashboard" class="brand-section">
+        <a href="#dashboard" class="brand-section" aria-label="learn: Home">
           <span>learn:</span>
           <span class="brand-pill">L4-L6</span>
         </a>
-        <div id="connection-pill" class="status-pill">
+        <div id="connection-pill" class="status-pill" role="status" aria-live="polite">
           <span id="connection-dot" class="status-dot"></span>
           <span id="connection-text">Connecting...</span>
         </div>
@@ -35,14 +39,14 @@
 
       <div class="nav-actions">
         <button id="btn-global-search" class="btn-icon" title="Global Search (/)" aria-label="Search">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         </button>
         <button id="btn-theme-toggle" class="btn-icon" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
         </button>
         <button id="btn-shortcuts" class="btn-icon" title="Keyboard Shortcuts (?)" aria-label="Keyboard Shortcuts">?</button>
-        <button id="btn-auth" class="btn-icon" title="Tailnet API Token" aria-label="API Token">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <button id="btn-auth" class="btn-icon" title="Tailnet Security &amp; Edge Settings" aria-label="Settings">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </button>
       </div>
     </header>
@@ -51,7 +55,7 @@
     <div id="pinned-bar" class="pinned-bar" role="region" aria-label="Priority Queue">
       <span class="pinned-bar-label">PRIORITY QUEUE:</span>
       <div id="pinned-list" class="pinned-list">
-        <span class="text-muted" style="font-size:11px;">No pinned topics. Press 'p' to pin a topic.</span>
+        <span class="text-muted">No pinned topics. Press 'p' to pin a topic.</span>
       </div>
     </div>
 
@@ -60,72 +64,94 @@
       <!-- VIEW 1: DASHBOARD -->
       <section id="view-dashboard" class="app-view active" aria-label="Dashboard">
         <div class="hero-banner">
-          <div>
-            <h1 style="font-size:20px; font-weight:700;">Technical Mastery &amp; Interview Engine</h1>
-            <p style="color:var(--text-secondary); font-size:13px; margin-top:4px;">
-              Local-first practice arena targeting FAANG/AI Lab L4-L6 calibration bars.
+          <div class="hero-banner-content">
+            <h1 class="hero-title" tabindex="-1">Technical Mastery &amp; Interview Engine</h1>
+            <p class="hero-subtitle">
+              Local-first practice arena targeting FAANG &amp; AI Lab L4-L6 calibration bars.
             </p>
           </div>
-          <div style="display:flex; gap:var(--space-sm);">
+          <div class="hero-badges">
             <span class="badge badge-l6">FAANG SWE L5/L6</span>
             <span class="badge badge-company">Google &amp; OpenAI Bars</span>
           </div>
         </div>
 
+        <!-- Summary KPI Bar -->
+        <div class="kpi-summary-grid">
+          <div class="kpi-card">
+            <span class="kpi-label">Total Curriculum Topics</span>
+            <span id="kpi-total-topics" class="kpi-value tabular-nums">11</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Active Priority Pins</span>
+            <span id="kpi-pinned-count" class="kpi-value tabular-nums">0</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Mean Proficiency Rating</span>
+            <span id="kpi-mean-rating" class="kpi-value tabular-nums">0.00</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Runtime Engine</span>
+            <span id="kpi-engine-badge" class="badge badge-engine">Edge / Local</span>
+          </div>
+        </div>
+
         <div class="domain-grid">
-          <div class="domain-card" data-domain="leetcode">
+          <div class="domain-card" data-domain="leetcode" tabindex="0" role="button" aria-label="Filter LeetCode &amp; Algorithms">
             <div class="domain-card-header">
               <span class="domain-title">LeetCode &amp; Algorithms</span>
               <span class="badge badge-l5">3 Topics</span>
             </div>
-            <p style="font-size:12px; color:var(--text-secondary);">Pythonic patterns, Master's algorithms, data structures.</p>
+            <p class="domain-desc">Pythonic patterns, Master's algorithms, data structures.</p>
           </div>
 
-          <div class="domain-card" data-domain="system-design">
+          <div class="domain-card" data-domain="system-design" tabindex="0" role="button" aria-label="Filter System Design &amp; Infra">
             <div class="domain-card-header">
               <span class="domain-title">System Design &amp; Infra</span>
               <span class="badge badge-l6">3 Topics</span>
             </div>
-            <p style="font-size:12px; color:var(--text-secondary);">Statistics, Rust systems, Go distributed microservices.</p>
+            <p class="domain-desc">Statistics, Rust systems, Go distributed microservices.</p>
           </div>
 
-          <div class="domain-card" data-domain="security">
+          <div class="domain-card" data-domain="security" tabindex="0" role="button" aria-label="Filter Security &amp; Agent Models">
             <div class="domain-card-header">
               <span class="domain-title">Security &amp; Agent Models</span>
               <span class="badge badge-l6">3 Topics</span>
             </div>
-            <p style="font-size:12px; color:var(--text-secondary);">Modern AuthN/AuthZ (Zanzibar), threat modeling, agent sandbox.</p>
+            <p class="domain-desc">Modern AuthN/AuthZ (Zanzibar), threat modeling, agent sandbox.</p>
           </div>
 
-          <div class="domain-card" data-domain="privacy-engineering">
+          <div class="domain-card" data-domain="privacy-engineering" tabindex="0" role="button" aria-label="Filter Privacy Engineering">
             <div class="domain-card-header">
               <span class="domain-title">Privacy Engineering</span>
               <span class="badge badge-l6">2 Topics</span>
             </div>
-            <p style="font-size:12px; color:var(--text-secondary);">PETs for AI, modern differential privacy (DP-SGD, Renyi DP).</p>
+            <p class="domain-desc">PETs for AI, modern differential privacy (DP-SGD, Renyi DP).</p>
           </div>
         </div>
 
-        <div class="table-controls">
-          <div class="filter-pills">
-            <button class="filter-btn active" data-filter="all">All Domains</button>
-            <button class="filter-btn" data-filter="leetcode">LeetCode</button>
-            <button class="filter-btn" data-filter="system-design">System Design</button>
-            <button class="filter-btn" data-filter="security">Security</button>
-            <button class="filter-btn" data-filter="privacy-engineering">Privacy</button>
+        <search class="table-controls">
+          <div class="filter-pills" role="toolbar" aria-label="Domain filters">
+            <button type="button" class="filter-btn active" data-filter="all">All Domains</button>
+            <button type="button" class="filter-btn" data-filter="leetcode">LeetCode</button>
+            <button type="button" class="filter-btn" data-filter="system-design">System Design</button>
+            <button type="button" class="filter-btn" data-filter="security">Security</button>
+            <button type="button" class="filter-btn" data-filter="privacy-engineering">Privacy</button>
           </div>
-          <input type="text" id="topic-search-input" class="search-input" placeholder="Filter topics by name or invariant...">
-        </div>
+          <label for="topic-search-input" class="visually-hidden">Search topics by keyword</label>
+          <input type="search" id="topic-search-input" class="search-input" placeholder="Filter topics by name or invariant...">
+        </search>
 
         <div class="topic-table-container">
           <table class="topic-table">
+            <caption class="visually-hidden">Technical Topics and Calibrated Calibration Bars</caption>
             <thead>
               <tr>
-                <th>Topic</th>
-                <th>Domain</th>
-                <th>Target Roles</th>
-                <th>Proficiency</th>
-                <th>Actions</th>
+                <th scope="col">Topic</th>
+                <th scope="col">Domain</th>
+                <th scope="col">Target Roles</th>
+                <th scope="col">Proficiency</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody id="topic-table-body">
@@ -137,14 +163,15 @@
 
       <!-- VIEW 2: TOPIC DEEP DIVE -->
       <section id="view-topic-detail" class="app-view" aria-label="Topic Deep Dive" hidden>
-        <div style="margin-bottom:var(--space-md); display:flex; justify-content:space-between; align-items:center;">
+        <div style="margin-bottom:var(--space-md); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-sm);">
           <div>
             <div id="topic-detail-breadcrumb" style="font-size:12px; color:var(--text-muted); font-family:var(--font-mono);">
               Dashboard / <span id="breadcrumb-domain">domain</span> / <span id="breadcrumb-topic">topic</span>
             </div>
-            <h1 id="topic-detail-title" style="font-size:22px; font-weight:700; margin-top:4px;">Topic Title</h1>
+            <h1 id="topic-detail-title" class="hero-title" tabindex="-1">Topic Title</h1>
           </div>
-          <div style="display:flex; gap:var(--space-sm);">
+          <div style="display:flex; gap:var(--space-sm); flex-wrap:wrap;">
+            <button id="btn-back-to-dashboard" class="btn btn-secondary btn-sm" aria-label="Back to Dashboard">&larr; Back to Dashboard</button>
             <button id="btn-pin-topic" class="btn btn-secondary btn-sm">Pin Topic (p)</button>
             <button id="btn-start-quiz-from-topic" class="btn btn-secondary btn-sm">Practice Quiz</button>
             <button id="btn-start-interview-from-topic" class="btn btn-primary btn-sm">Mock Interview</button>
@@ -152,47 +179,65 @@
           </div>
         </div>
 
-        <div class="tabs-nav">
-          <button class="tab-btn active" data-tab="tab-fundamentals">Fundamentals</button>
-          <button class="tab-btn" data-tab="tab-references">Citations &amp; References</button>
-          <button class="tab-btn" data-tab="tab-rubric">Evaluation Rubrics</button>
-          <button class="tab-btn" data-tab="tab-exercises">Tiered Exercises</button>
+        <div class="tabs-nav" role="tablist">
+          <button class="tab-btn active" data-tab="tab-fundamentals" role="tab" aria-selected="true">Fundamentals</button>
+          <button class="tab-btn" data-tab="tab-references" role="tab" aria-selected="false">Citations &amp; References</button>
+          <button class="tab-btn" data-tab="tab-rubric" role="tab" aria-selected="false">Evaluation Rubrics</button>
+          <button class="tab-btn" data-tab="tab-exercises" role="tab" aria-selected="false">Tiered Exercises</button>
+          <button class="tab-btn" data-tab="tab-learnings" role="tab" aria-selected="false">Durable Learnings</button>
         </div>
 
-        <div id="tab-fundamentals" class="tab-pane active">
-          <div id="topic-fundamentals-content" class="code-pre" style="background:var(--bg-card); border:1px solid var(--border-light); border-radius:var(--radius-md);">
+        <div id="tab-fundamentals" class="tab-pane active" role="tabpanel">
+          <div id="topic-fundamentals-content" class="code-pre">
             Loading fundamentals...
           </div>
         </div>
 
-        <div id="tab-references" class="tab-pane">
-          <div id="topic-references-content" style="background:var(--bg-card); border:1px solid var(--border-light); border-radius:var(--radius-md); padding:var(--space-md);">
+        <div id="tab-references" class="tab-pane" role="tabpanel">
+          <div id="topic-references-content" class="markdown-body" style="background:var(--bg-card); border:1px solid var(--border-light); border-radius:var(--radius-md); padding:var(--space-md);">
             Loading references...
           </div>
         </div>
 
-        <div id="tab-rubric" class="tab-pane">
-          <div id="topic-rubric-content" class="code-pre" style="background:var(--bg-card); border:1px solid var(--border-light); border-radius:var(--radius-md);">
+        <div id="tab-rubric" class="tab-pane" role="tabpanel">
+          <div id="topic-rubric-content" class="code-pre">
             Loading rubric...
           </div>
         </div>
 
-        <div id="tab-exercises" class="tab-pane">
+        <div id="tab-exercises" class="tab-pane" role="tabpanel">
           <div id="topic-exercises-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:var(--space-md);">
             <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <div id="tab-learnings" class="tab-pane" role="tabpanel">
+          <div id="topic-learnings-content" class="learnings-container">
+            <p class="text-muted">No durable learnings captured for this topic yet.</p>
           </div>
         </div>
       </section>
 
       <!-- VIEW 3: ADAPTIVE QUIZ ARENA -->
       <section id="view-quiz" class="app-view" aria-label="Adaptive Quiz Arena" hidden>
-        <div style="margin-bottom:var(--space-md); display:flex; justify-content:space-between; align-items:center;">
-          <div>
+        <h1 class="view-title visually-hidden" tabindex="-1">Adaptive Quiz Arena</h1>
+        <div style="margin-bottom:var(--space-md); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-sm);">
+          <div style="display:flex; align-items:center; gap:var(--space-sm); flex-wrap:wrap;">
+            <label for="quiz-select-topic" class="visually-hidden">Topic</label>
+            <select id="quiz-select-topic" class="form-control form-control-sm"></select>
+            <label for="quiz-select-tier" class="visually-hidden">Tier</label>
+            <select id="quiz-select-tier" class="form-control form-control-sm">
+              <option value="tier1_starter">Tier 1: Starter</option>
+              <option value="tier2_l4">Tier 2: L4 Baseline</option>
+              <option value="tier3_l5">Tier 3: L5 Senior</option>
+              <option value="tier4_l6">Tier 4: L6 Staff Invariant</option>
+            </select>
+            <button id="btn-quiz-new" class="btn btn-secondary btn-sm">Load Exercise</button>
             <span id="quiz-topic-badge" class="badge badge-l4">Topic</span>
             <span id="quiz-tier-badge" class="badge badge-l5">Tier 1: Starter</span>
           </div>
           <div>
-            <span style="font-size:12px; font-family:var(--font-mono);">Current Subdomain Rating: <strong id="quiz-rating-display">3.00</strong> / 5.00</span>
+            <span style="font-size:12px; font-family:var(--font-mono);">Current Subdomain Rating: <strong id="quiz-rating-display" class="tabular-nums">3.00</strong> / 5.00</span>
           </div>
         </div>
 
@@ -201,7 +246,7 @@
             <div class="panel-header">
               <span style="font-weight:700; font-size:13px;">Problem Specification</span>
             </div>
-            <div id="quiz-problem-prompt" class="code-pre" style="flex:1; border:none; padding:var(--space-md); overflow-y:auto;">
+            <div id="quiz-problem-prompt" class="markdown-body" style="flex:1; border:none; padding:var(--space-md); overflow-y:auto;">
               Select a topic and tier to begin your adaptive exercise.
             </div>
           </div>
@@ -227,14 +272,40 @@
 
       <!-- VIEW 4: MOCK INTERVIEW TERMINAL -->
       <section id="view-interview" class="app-view" aria-label="Mock Interview Terminal" hidden>
+        <h1 class="view-title visually-hidden" tabindex="-1">Mock Interview Terminal</h1>
         <div style="margin-bottom:var(--space-md); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-sm);">
+          <div style="display:flex; align-items:center; gap:var(--space-xs); flex-wrap:wrap;">
+            <label for="interview-select-topic" class="visually-hidden">Interview Topic</label>
+            <select id="interview-select-topic" class="form-control form-control-sm"></select>
+            <label for="interview-select-company" class="visually-hidden">Target Company</label>
+            <select id="interview-select-company" class="form-control form-control-sm">
+              <option value="Google">Google</option>
+              <option value="OpenAI">OpenAI</option>
+              <option value="Anthropic">Anthropic</option>
+              <option value="Meta">Meta</option>
+              <option value="Databricks">Databricks</option>
+              <option value="Netflix">Netflix</option>
+              <option value="Apple">Apple</option>
+            </select>
+            <label for="interview-select-track" class="visually-hidden">Role Track</label>
+            <select id="interview-select-track" class="form-control form-control-sm">
+              <option value="faang_swe_l5_l6">FAANG SWE L5/L6</option>
+              <option value="faang_privacy_l6">FAANG Privacy L6</option>
+              <option value="faang_security_l4_l6">FAANG Security L4-L6</option>
+              <option value="ai_lab_research_l4_l5">AI Lab Research L4-L5</option>
+            </select>
+            <label for="interview-select-mode" class="visually-hidden">Mode</label>
+            <select id="interview-select-mode" class="form-control form-control-sm">
+              <option value="hints">Hints Mode</option>
+              <option value="no-hints">Strict Mode</option>
+            </select>
+            <button id="btn-interview-new" class="btn btn-secondary btn-sm">Start New Round</button>
+          </div>
           <div style="display:flex; align-items:center; gap:var(--space-sm);">
             <span id="interview-company-badge" class="badge badge-company">Google</span>
             <span id="interview-track-badge" class="badge badge-l6">FAANG SWE L5/L6</span>
             <span id="interview-mode-badge" class="badge badge-l4">Socratic Hints Mode</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:var(--space-sm);">
-            <div id="interview-timer" style="font-family:var(--font-mono); font-weight:700; font-size:14px; padding:4px 8px; background:var(--bg-tertiary); border-radius:var(--radius-sm); border:1px solid var(--border-light);">
+            <div id="interview-timer" class="tabular-nums" style="font-family:var(--font-mono); font-weight:700; font-size:14px; padding:4px 8px; background:var(--bg-tertiary); border-radius:var(--radius-sm); border:1px solid var(--border-light);">
               45:00
             </div>
             <button id="btn-request-hint" class="btn btn-secondary btn-sm">Hint (h) [3 left]</button>
@@ -277,9 +348,9 @@
       <!-- VIEW 5: ROLE ALIGNMENT HUB -->
       <section id="view-alignment" class="app-view" aria-label="Role and Resume Alignment" hidden>
         <div class="hero-banner">
-          <div>
-            <h1 style="font-size:20px; font-weight:700;">Role &amp; Resume Alignment Engine</h1>
-            <p style="color:var(--text-secondary); font-size:13px; margin-top:4px;">
+          <div class="hero-banner-content">
+            <h1 class="hero-title" tabindex="-1">Role &amp; Resume Alignment Engine</h1>
+            <p class="hero-subtitle">
               Weighted fit score calculations, high-leverage skill gap prioritization, and customized 5-round loops.
             </p>
           </div>
@@ -311,8 +382,16 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="align-jd-text">Target Job Description</label>
-              <textarea id="align-jd-text" class="form-control" rows="8" placeholder="Paste full job description requirements here..."></textarea>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-xs);">
+                <label class="form-label" for="align-jd-text" style="margin-bottom:0;">Target Job Description</label>
+                <div class="alignment-presets">
+                  <button type="button" class="btn btn-preset btn-xs" data-preset="google_swe">Google L6 SWE</button>
+                  <button type="button" class="btn btn-preset btn-xs" data-preset="anthropic_sec">Anthropic L5/L6 SecEng</button>
+                  <button type="button" class="btn btn-preset btn-xs" data-preset="meta_privacy">Meta L6 Privacy</button>
+                  <button type="button" class="btn btn-preset btn-xs" data-preset="openai_research">OpenAI Research</button>
+                </div>
+              </div>
+              <textarea id="align-jd-text" class="form-control" rows="8" placeholder="Paste full job description requirements here or select a 1-click preset above..."></textarea>
             </div>
           </div>
 
@@ -320,11 +399,11 @@
             <div class="form-group" style="flex:1; display:flex; flex-direction:column;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-xs);">
                 <label class="form-label" for="align-resume-text" style="margin-bottom:0;">Candidate Resume (Markdown or Plain Text)</label>
-                <button id="btn-load-active-resume" class="btn btn-secondary btn-sm" style="font-size:10px;">Load Saved Resume</button>
+                <button type="button" id="btn-load-active-resume" class="btn btn-secondary btn-sm" style="font-size:11px;">Load Sample / Saved Resume</button>
               </div>
-              <textarea id="align-resume-text" class="form-control" style="flex:1;" rows="8" placeholder="Paste resume text or load from ~/.local/share/learn/resumes/active_resume.md..."></textarea>
+              <textarea id="align-resume-text" class="form-control" style="flex:1;" rows="8" placeholder="Paste resume text or click 'Load Sample / Saved Resume' for one-click alignment..."></textarea>
             </div>
-            <button id="btn-run-alignment" class="btn btn-primary" style="margin-top:var(--space-md); width:100%;">Run Alignment Analysis</button>
+            <button type="button" id="btn-run-alignment" class="btn btn-primary" style="margin-top:var(--space-md); width:100%;">Run Alignment Analysis</button>
           </div>
         </div>
 
@@ -336,43 +415,44 @@
       <!-- VIEW 6: TELEMETRY & COSTS -->
       <section id="view-telemetry" class="app-view" aria-label="Telemetry and Costs" hidden>
         <div class="hero-banner">
-          <div>
-            <h1 style="font-size:20px; font-weight:700;">Subscription CLI Telemetry &amp; Cost Ledger</h1>
-            <p style="color:var(--text-secondary); font-size:13px; margin-top:4px;">
+          <div class="hero-banner-content">
+            <h1 class="hero-title" tabindex="-1">Subscription CLI Telemetry &amp; Cost Ledger</h1>
+            <p class="hero-subtitle">
               Zero marginal cost LLM execution tracking across Claude Code, Codex, and AGY CLI harnesses.
             </p>
           </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:var(--space-md); margin-bottom:var(--space-lg);" id="telemetry-metrics-grid">
-          <div class="domain-card">
-            <span class="text-muted" style="font-size:11px; font-family:var(--font-mono);">TOTAL REQUESTS</span>
-            <h3 id="telem-total-requests" style="font-size:24px; font-weight:700; margin-top:4px;">0</h3>
+        <div class="kpi-summary-grid" id="telemetry-metrics-grid">
+          <div class="kpi-card">
+            <span class="kpi-label">TOTAL REQUESTS</span>
+            <span id="telem-total-requests" class="kpi-value tabular-nums">0</span>
           </div>
-          <div class="domain-card">
-            <span class="text-muted" style="font-size:11px; font-family:var(--font-mono);">TOTAL TOKENS</span>
-            <h3 id="telem-total-tokens" style="font-size:24px; font-weight:700; margin-top:4px;">0</h3>
+          <div class="kpi-card">
+            <span class="kpi-label">TOTAL TOKENS</span>
+            <span id="telem-total-tokens" class="kpi-value tabular-nums">0</span>
           </div>
-          <div class="domain-card">
-            <span class="text-muted" style="font-size:11px; font-family:var(--font-mono);">ACTUAL COST (SUBSCRIPTION)</span>
-            <h3 id="telem-actual-cost" style="font-size:24px; font-weight:700; margin-top:4px; color:var(--success-text);">$0.00</h3>
+          <div class="kpi-card">
+            <span class="kpi-label">ACTUAL COST (SUBSCRIPTION)</span>
+            <span id="telem-actual-cost" class="kpi-value tabular-nums text-success">$0.00</span>
           </div>
-          <div class="domain-card">
-            <span class="text-muted" style="font-size:11px; font-family:var(--font-mono);">NOMINAL API VALUE</span>
-            <h3 id="telem-nominal-value" style="font-size:24px; font-weight:700; margin-top:4px; color:var(--accent-primary);">$0.00</h3>
+          <div class="kpi-card">
+            <span class="kpi-label">NOMINAL API VALUE</span>
+            <span id="telem-nominal-value" class="kpi-value tabular-nums text-primary">$0.00</span>
           </div>
         </div>
 
         <div class="topic-table-container">
           <table class="topic-table">
+            <caption class="visually-hidden">Telemetry Logs and Cost Incurrence</caption>
             <thead>
               <tr>
-                <th>Timestamp</th>
-                <th>Provider</th>
-                <th>Model</th>
-                <th>Tier</th>
-                <th>Tokens</th>
-                <th>Status</th>
+                <th scope="col">Timestamp</th>
+                <th scope="col">Provider</th>
+                <th scope="col">Model</th>
+                <th scope="col">Tier</th>
+                <th scope="col">Tokens</th>
+                <th scope="col">Status</th>
               </tr>
             </thead>
             <tbody id="telemetry-table-body">
@@ -383,16 +463,16 @@
       </section>
     </main>
 
-    <!-- GLOBAL MODALS -->
+    <!-- GLOBAL MODALS (MWG light-dismiss-a-dialog with closedby="any") -->
 
     <!-- Durable Learning Capture Modal -->
-    <dialog id="modal-durable-capture" class="app-modal">
+    <dialog id="modal-durable-capture" class="app-modal" closedby="any" aria-labelledby="capture-title">
       <div class="modal-header">
         <h3 id="capture-title" style="font-size:16px; font-weight:700;">Capture Breakthrough as Durable Learning</h3>
         <button class="btn-icon modal-close-btn" aria-label="Close">×</button>
       </div>
       <p style="font-size:12px; color:var(--text-secondary); margin-bottom:var(--space-md);">
-        Saves canonical markdown to <code style="font-size:11px;">&lt;domain&gt;/&lt;topic&gt;/learnings/</code> with automated PII scrubbing.
+        Saves canonical markdown to <code style="font-size:11px;">&lt;domain&gt;/&lt;topic&gt;/learnings/</code> with automated client/server PII scrubbing.
       </p>
       <form id="form-durable-capture">
         <div class="form-group">
@@ -434,7 +514,7 @@
     </dialog>
 
     <!-- Scorecard Modal -->
-    <dialog id="modal-scorecard" class="app-modal scorecard-modal">
+    <dialog id="modal-scorecard" class="app-modal scorecard-modal" closedby="any" aria-labelledby="scorecard-title">
       <div class="modal-header">
         <h3 id="scorecard-title" style="font-size:16px; font-weight:700;">Interview Evaluation Scorecard &amp; Hiring Bar</h3>
         <button class="btn-icon modal-close-btn" aria-label="Close">×</button>
@@ -448,24 +528,26 @@
     </dialog>
 
     <!-- Global Search Modal -->
-    <dialog id="modal-search" class="app-modal">
+    <dialog id="modal-search" class="app-modal" closedby="any" aria-labelledby="search-title">
       <div class="modal-header">
         <h3 id="search-title" style="font-size:15px; font-weight:700;">Quick Search &amp; Navigation</h3>
         <button class="btn-icon modal-close-btn" aria-label="Close">×</button>
       </div>
-      <input type="text" id="modal-search-input" class="form-control" placeholder="Search 11 priority topics, 4 domains, and rubrics...">
+      <label for="modal-search-input" class="visually-hidden">Search all topics, domains, and role tracks</label>
+      <input type="search" id="modal-search-input" class="form-control" placeholder="Search 11 priority topics, 4 domains, and rubrics (press Enter to navigate)...">
       <div id="modal-search-results" style="margin-top:var(--space-md); max-height:300px; overflow-y:auto;">
         <!-- Results rendered via JS -->
       </div>
     </dialog>
 
     <!-- Keyboard Shortcuts Modal -->
-    <dialog id="modal-shortcuts" class="app-modal">
+    <dialog id="modal-shortcuts" class="app-modal" closedby="any" aria-labelledby="shortcuts-title">
       <div class="modal-header">
         <h3 id="shortcuts-title" style="font-size:15px; font-weight:700;">Keyboard Navigation &amp; Shortcuts</h3>
         <button class="btn-icon modal-close-btn" aria-label="Close">×</button>
       </div>
       <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <caption class="visually-hidden">Keyboard shortcuts reference list</caption>
         <tbody>
           <tr><td style="padding:6px 0;"><kbd style="background:var(--bg-tertiary); padding:2px 6px; border-radius:4px; font-family:var(--font-mono);">j / k</kbd></td><td>Navigate topics in table</td></tr>
           <tr><td style="padding:6px 0;"><kbd style="background:var(--bg-tertiary); padding:2px 6px; border-radius:4px; font-family:var(--font-mono);">Enter</kbd></td><td>Open selected topic deep dive</td></tr>
@@ -483,23 +565,27 @@
       </div>
     </dialog>
 
-    <!-- Auth Modal -->
-    <dialog id="modal-auth" class="app-modal">
+    <!-- Auth & Runtime Engine Modal -->
+    <dialog id="modal-auth" class="app-modal" closedby="any" aria-labelledby="auth-title">
       <div class="modal-header">
-        <h3 id="auth-title" style="font-size:15px; font-weight:700;">Tailnet Security &amp; API Token</h3>
+        <h3 id="auth-title" style="font-size:15px; font-weight:700;">Backend Connection &amp; Tailnet Security</h3>
         <button class="btn-icon modal-close-btn" aria-label="Close">×</button>
       </div>
       <p style="font-size:12px; color:var(--text-secondary); margin-bottom:var(--space-md);">
-        Loopback connections (<code style="font-size:11px;">127.0.0.1:8795</code>) are pre-authorized. Non-loopback Tailnet connections require your <code style="font-size:11px;">LEARN_API_TOKEN</code>.
+        Loopback connections (<code style="font-size:11px;">127.0.0.1:8795</code>) are pre-authorized. When hosted statically on Cloudflare Pages (<code style="font-size:11px;">learn.willmccarty.io</code>), EdgeEngine runs locally in your browser.
       </p>
       <form id="form-auth-token">
         <div class="form-group">
-          <label class="form-label" for="auth-token-input">API Token</label>
+          <label class="form-label" for="auth-base-url-input">API Base URL (Leave empty for default / EdgeEngine)</label>
+          <input type="text" id="auth-base-url-input" class="form-control" placeholder="e.g. /api or https://learn.tailnet.net:8795/api">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="auth-token-input">API Token (Optional for Remote Tailnet Access)</label>
           <input type="password" id="auth-token-input" class="form-control" placeholder="Enter LEARN_API_TOKEN...">
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary modal-close-btn">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Token</button>
+          <button type="submit" class="btn btn-primary">Save Settings</button>
         </div>
       </form>
     </dialog>

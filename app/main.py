@@ -5,9 +5,12 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from starlette.responses import HTMLResponse, JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response, FileResponse
 
 from app.config import settings
+from app.core import topic_loader, ALLOWED_DOMAINS
+from app.core.rubric_scorer import RubricScorer
+from app.core.resume_matcher import ResumeMatcher
 from app.mcp import mcp_router
 from app.api import (
     topics_router,
@@ -32,6 +35,72 @@ templates_dir = ui_dir / "templates"
 
 static_dir.mkdir(parents=True, exist_ok=True)
 templates_dir.mkdir(parents=True, exist_ok=True)
+
+FAVICON_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="6" fill="#0B5CAD"/>
+  <path d="M7 10L16 5l9 5-9 5-9-5z" fill="#FFFFFF"/>
+  <path d="M7 16l9 5 9-5" stroke="#93C5FD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M7 22l9 5 9-5" stroke="#60A5FA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>"""
+
+def build_curriculum_catalog() -> dict:
+    """Dynamically assemble the comprehensive curriculum catalog for offline/edge operation."""
+    topics = topic_loader.list_topics(domain_filter="all")
+    topic_details = {}
+    for t in topics:
+        d = t.get("domain", "")
+        s = t.get("slug", "")
+        if d and s:
+            try:
+                detail = topic_loader.load_topic_detail(d, s)
+                if detail:
+                    topic_details[f"{d}/{s}"] = detail
+                    if s not in topic_details:
+                        topic_details[s] = detail
+            except Exception:
+                pass
+
+    return {
+        "catalog_version": "1.0.0",
+        "platform": "learn.willmccarty.io",
+        "domains": list(ALLOWED_DOMAINS),
+        "topics": topics,
+        "topic_details": topic_details,
+        "role_tracks": ResumeMatcher.SUPPORTED_ROLE_TRACKS,
+        "competency_matrix": ResumeMatcher.COMPETENCY_MATRIX,
+        "company_bars": RubricScorer.COMPANY_PROFILES,
+        "dimension_weights": RubricScorer.DIMENSION_WEIGHTS,
+    }
+
+
+@app.get("/static/catalog.json")
+@app.get("/api/catalog")
+@app.get("/api/v1/catalog")
+async def serve_catalog():
+    """Serve full curriculum catalog for Cloudflare Edge / offline clients."""
+    disk_file = static_dir / "catalog.json"
+    if disk_file.exists():
+        return FileResponse(str(disk_file), media_type="application/json")
+    return JSONResponse(content=build_curriculum_catalog())
+
+
+@app.get("/favicon.svg")
+async def serve_favicon():
+    """Serve SVG favicon with high-DPI crisp geometry."""
+    disk_file = static_dir / "favicon.svg"
+    if disk_file.exists():
+        return FileResponse(str(disk_file), media_type="image/svg+xml")
+    return Response(content=FAVICON_SVG, media_type="image/svg+xml")
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse)
+async def serve_robots():
+    """Serve crawler directives."""
+    disk_file = static_dir / "robots.txt"
+    if disk_file.exists():
+        return FileResponse(str(disk_file), media_type="text/plain")
+    return PlainTextResponse("User-agent: *\nAllow: /\nSitemap: https://learn.willmccarty.io/sitemap.xml\n")
+
 
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 templates = Jinja2Templates(directory=str(templates_dir))

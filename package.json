@@ -1,0 +1,8 @@
+{
+  "name": "learn.willmccarty.io",
+  "private": true,
+  "scripts": {
+    "build": "python3 scripts/build_pages.py",
+    "preview": "python3 -m http.server 8796 --directory dist"
+  }
+}
