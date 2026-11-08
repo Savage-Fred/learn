@@ -575,17 +575,27 @@ class MCPToolRegistry:
         # Grade through the shared engine so live mode never records heuristic grades.
         engine = AdaptiveEngine(state_mgr=StateManager(settings.data_dir))
         session_id = args.get("session_id")
-        if not session_id or not engine.state_mgr.get_session(session_id):
+        session = engine.state_mgr.get_session(session_id) if session_id else None
+        if session:
+            topic = session.get("topic_id", canonical_slug)
+            graded_id = str(exercise_id)
+            current = session.get("current_exercise")
+            # Legacy callers name the exercise by tier or curriculum path, not engine ID.
+            if current and session.get("current_difficulty", "") in graded_id:
+                graded_id = current["exercise_id"]
+        else:
             level = next((t for t in engine.FULL_LADDER if t in str(exercise_id)), "starter")
-            session_id = engine.start_exercise(canonical_slug, level)["session_id"]
-        result = engine.exercise_turn(session_id, str(exercise_id), str(user_response))
+            start = engine.start_exercise(canonical_slug, level)
+            session_id, graded_id, topic = start["session_id"], start["exercise_id"], canonical_slug
+        result = engine.exercise_turn(session_id, graded_id, str(user_response))
 
-        # Legacy response contract: full tier names and a curriculum path for next_exercise.
+        # Legacy response contract: caller's exercise ID, full tier names, curriculum path.
         next_tier = result["next_tier"]
         return {
             **result,
+            "exercise_id": exercise_id,
             "next_difficulty_level": next_tier,
-            "next_exercise": f"{canonical_slug}/exercises/{next_tier}.md",
+            "next_exercise": f"{topic}/exercises/{next_tier}.md",
         }
 
     # -------------------------------------------------------------------------

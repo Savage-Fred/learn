@@ -2,7 +2,6 @@
 
 import json
 import os
-import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -20,6 +19,10 @@ DEFAULT_BASELINE_RATING = 1.0
 
 class GradingUnavailableError(RuntimeError):
     """Live grading failed or was malformed; ratings and session state are unchanged."""
+
+
+class StaleExerciseError(ValueError):
+    """The submitted exercise is not the session's current one (already graded or foreign)."""
 
 
 class AdaptiveEngine:
@@ -91,9 +94,13 @@ class AdaptiveEngine:
             topic_id = session_data.get("topic_id", "general")
             curr_tier = session_data.get("current_difficulty", "tier1_starter")
             # Sessions saved before the problem was persisted reload it from their tier.
-            current = session_data.get("current_exercise") or self._load_exercise(
-                topic_id, DifficultyTier.from_str(curr_tier)
-            )
+            stored = session_data.get("current_exercise")
+            if stored and exercise_id != stored["exercise_id"]:
+                raise StaleExerciseError(
+                    f"Exercise '{exercise_id}' is not this session's current exercise "
+                    f"'{stored['exercise_id']}'; it may already have been graded."
+                )
+            current = stored or self._load_exercise(topic_id, DifficultyTier.from_str(curr_tier))
 
             # 1. Grade against the session's problem; raises before any state changes.
             score, passed, eval_feedback, source = self._evaluate_response(
@@ -200,7 +207,9 @@ class AdaptiveEngine:
                 "No live grading provider responded; refusing to record a mock grade."
             )
         try:
-            parsed = json.loads(re.search(r"\{.*\}", res.get("text") or "", re.DOTALL).group(0))
+            text = res.get("text") or ""
+            # raw_decode stops at the end of the first object, so trailing prose with braces is fine.
+            parsed, _ = json.JSONDecoder().raw_decode(text[text.index("{"):])
             score, passed = parsed["score"], parsed["passed"]
             valid = (
                 isinstance(passed, bool)

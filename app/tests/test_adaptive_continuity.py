@@ -77,7 +77,7 @@ def test_api_ladder_serves_real_curriculum_up_and_down(client):
 
 def test_live_grader_receives_current_problem_and_rubric_each_turn(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "use_mock_llm", False)
-    router = FakeRouter()
+    router = FakeRouter(reply=GOOD_REPLY + "\nTip: a dict {} gives O(1) lookups.")
     engine = AdaptiveEngine(state_mgr=StateManager(data_dir=tmp_path), router=router)
 
     start = engine.start_exercise("algorithms")
@@ -85,6 +85,7 @@ def test_live_grader_receives_current_problem_and_rubric_each_turn(tmp_path, mon
     engine.exercise_turn(start["session_id"], first["next_exercise"]["exercise_id"], "second answer")
 
     assert first["assessment_source"] == "model"
+    assert first["feedback"] == "Meets the rubric."
     assert first["score"] == 4 and first["passed"] is True
     assert curriculum("starter") in router.prompts[0]
     assert curriculum("l4") in router.prompts[1]
@@ -152,3 +153,34 @@ def test_legacy_mcp_turn_uses_shared_engine(tmp_path, monkeypatch):
     resp = mcp.handle_request(call)
     assert "error" in resp or resp["result"].get("isError")
     assert StateManager(tmp_path).get_subdomain_ratings() == ratings_before
+
+
+def test_resubmitting_a_graded_exercise_is_rejected(client):
+    start = client.post("/api/quiz/start", json={"topic_id": "algorithms"}).json()
+    turn = {"session_id": start["session_id"], "exercise_id": start["exercise_id"],
+            "topic_id": "algorithms", "user_response": PASS}
+
+    assert client.post("/api/quiz/turn", json=turn).status_code == 200
+    ratings = client.get("/api/quiz/ratings").json()["ratings"]
+
+    res = client.post("/api/quiz/turn", json=turn)
+    assert res.status_code == 409
+    assert client.get("/api/quiz/ratings").json()["ratings"] == ratings
+
+
+def test_legacy_mcp_follow_up_uses_session_topic_and_tier_names(tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "data_dir", tmp_path)
+    mcp = MCPServer()
+
+    def turn(**arguments):
+        call = {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {
+            "name": "learn_run_adaptive_exercise_turn", "arguments": {"user_response": PASS, **arguments},
+        }}
+        return json.loads(mcp.handle_request(call)["result"]["content"][0]["text"])
+
+    first = turn(exercise_id="tier1_starter", topic_slug="rust")
+    assert first["next_exercise"] == "rust/exercises/tier2_l4.md"
+    second = turn(exercise_id=first["next_tier"], session_id=first["session_id"])
+    assert second["session_id"] == first["session_id"]
+    assert second["exercise_id"] == "tier2_l4"
+    assert second["next_exercise"] == "rust/exercises/tier3_l5.md"
