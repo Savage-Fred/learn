@@ -23,6 +23,7 @@ Baseline and CI work are tracked in [issue #7](https://github.com/Savage-Fred/le
 - Uncommitted issue #6 work is preserved at `.worktrees/cloudflare-webui` on
   `feature/6-polished-cloudflare-webui`. It includes a UI rewrite, static build,
   deployment notes, and build tests. There is no open PR for that work at handoff.
+  *Update 2026-11-08:* that work has since merged to `main` via PR #12 (`d771ef4`).
 
 ## Development order and acceptance
 
