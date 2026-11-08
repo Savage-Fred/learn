@@ -12,6 +12,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import yaml
 
 from app.config import settings
+from app.core.adaptive_engine import AdaptiveEngine
 from app.core.state import StateManager
 from app.mcp.schemas import (
     INVALID_PARAMS,
@@ -568,81 +569,33 @@ class MCPToolRegistry:
         if not user_response or not str(user_response).strip():
             raise ValueError("Missing required param: user_response or user_answer")
 
-        session_id = args.get("session_id") or str(uuid.uuid4())
         topic_slug = args.get("topic_slug") or args.get("topic_id") or "algorithms"
         _, canonical_slug = resolve_canonical_topic(topic_slug)
 
-        # Simple deterministic grading heuristic
-        user_clean = user_response.strip()
-        unique_chars = len(set(user_clean.lower()))
-        is_gibberish = (
-            (len(user_clean) >= 20 and unique_chars <= 4)
-            or any(bad in user_clean.lower() for bad in ["i don't know", "skip", "fail", "no idea"])
-        )
-        passed = len(user_clean) >= 20 and not is_gibberish and unique_chars > 4
-        score = 4.5 if passed else 2.0
-        evaluation = (
-            "Solid algorithmic reasoning; invariants preserved and complexity is bounded."
-            if passed
-            else "Incomplete proof; please verify edge invariants and boundary conditions."
-        )
+        # Grade through the shared engine so live mode never records heuristic grades.
+        engine = AdaptiveEngine(state_mgr=StateManager(settings.data_dir))
+        session_id = args.get("session_id")
+        session = engine.state_mgr.get_session(session_id) if session_id else None
+        if session:
+            topic = session.get("topic_id", canonical_slug)
+            graded_id = str(exercise_id)
+            current = session.get("current_exercise")
+            # Legacy callers name the exercise by tier or curriculum path, not engine ID.
+            if current and session.get("current_difficulty", "") in graded_id:
+                graded_id = current["exercise_id"]
+        else:
+            level = next((t for t in engine.FULL_LADDER if t in str(exercise_id)), "starter")
+            start = engine.start_exercise(canonical_slug, level)
+            session_id, graded_id, topic = start["session_id"], start["exercise_id"], canonical_slug
+        result = engine.exercise_turn(session_id, graded_id, str(user_response))
 
-        # Update rating
-        ratings_file = settings.data_dir / "ratings" / "subdomain_ratings.json"
-        ratings_alias_file = settings.data_dir / "subdomain_ratings.json"
-        ratings = {}
-        if ratings_file.exists():
-            try:
-                with open(ratings_file, "r", encoding="utf-8") as f:
-                    ratings = json.load(f)
-            except Exception:
-                pass
-        raw_rating = ratings.get(canonical_slug, 2.5)
-        try:
-            curr_rating = float(raw_rating)
-            if math.isnan(curr_rating) or math.isinf(curr_rating):
-                curr_rating = 2.5
-        except (ValueError, TypeError):
-            curr_rating = 2.5
-        new_rating = round(curr_rating + (0.35 if passed else -0.25), 2)
-        ratings[canonical_slug] = max(1.0, min(5.0, new_rating))
-        safe_atomic_write_json(ratings_file, ratings)
-        safe_atomic_write_json(ratings_alias_file, ratings)
-
-        # Record session turn
-        sessions_file = settings.data_dir / "sessions" / "exercises.jsonl"
-        sessions_file.parent.mkdir(parents=True, exist_ok=True)
-        turn_record = {
-            "session_id": session_id,
-            "exercise_id": exercise_id,
-            "topic": canonical_slug,
-            "score": score,
-            "passed": passed,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-        with open(sessions_file, "a", encoding="utf-8") as f:
-            f.write(json.dumps(turn_record) + "\n")
-
-        ladder = ["tier1_starter", "tier2_l4", "tier3_l5", "tier4_l6"]
-        curr_idx = 0
-        for i, level in enumerate(ladder):
-            if level in exercise_id:
-                curr_idx = i
-                break
-        next_idx = min(len(ladder) - 1, curr_idx + 1) if passed else max(0, curr_idx - 1)
-        next_tier = ladder[next_idx]
-
+        # Legacy response contract: caller's exercise ID, full tier names, curriculum path.
+        next_tier = result["next_tier"]
         return {
-            "session_id": session_id,
+            **result,
             "exercise_id": exercise_id,
-            "score": score,
-            "passed": passed,
-            "evaluation": evaluation,
-            "feedback": evaluation,
-            "new_rating": new_rating,
             "next_difficulty_level": next_tier,
-            "next_tier": next_tier,
-            "next_exercise": f"{canonical_slug}/exercises/{next_tier}.md",
+            "next_exercise": f"{topic}/exercises/{next_tier}.md",
         }
 
     # -------------------------------------------------------------------------

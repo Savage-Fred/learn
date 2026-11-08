@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.core import adaptive_engine, state, sanitize_identifier
+from app.core.adaptive_engine import GradingUnavailableError, StaleExerciseError
 
 router = APIRouter(prefix="/quiz", tags=["Quiz"])
 
@@ -48,17 +49,23 @@ async def quiz_turn(req: QuizTurnRequest):
     try:
         # If session_id not given or does not exist, start one
         session_id = req.session_id
+        exercise_id = req.exercise_id
         if not session_id or not state.get_session(session_id):
-            # Initialize an implicit session
+            # Initialize an implicit session; the answer is graded against its first exercise.
             start_payload = adaptive_engine.start_exercise(topic_id=topic, initial_level=req.current_difficulty or "starter")
             session_id = start_payload["session_id"]
+            exercise_id = start_payload["exercise_id"]
 
         result = adaptive_engine.exercise_turn(
             session_id=session_id,
-            exercise_id=req.exercise_id,
+            exercise_id=exercise_id,
             user_response=user_answer,
         )
         return result
+    except GradingUnavailableError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except StaleExerciseError as e:
+        raise HTTPException(status_code=409, detail=str(e))
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except ValueError as e:
