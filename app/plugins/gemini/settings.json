@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "learn": {
+      "command": "/absolute/path/to/learn/.venv/bin/learn-mcp"
+    }
+  }
+}
