@@ -1,0 +1,25 @@
+[Unit]
+Description=Savage-Fred/learn Local FastAPI & WebSocket Learning Harness
+Documentation=https://github.com/Savage-Fred/learn
+After=network.target
+
+[Service]
+Type=simple
+User=will
+WorkingDirectory=/home/will/dev/learn
+Environment="PYTHONUNBUFFERED=1"
+Environment="LEARN_HOST=127.0.0.1"
+Environment="LEARN_PORT=8795"
+ExecStart=/home/will/.local/bin/uv run uvicorn app.main:app --host 127.0.0.1 --port 8795
+Restart=on-failure
+RestartSec=5s
+
+# Process Sandboxing & Hardening
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/will/.local/share/learn
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

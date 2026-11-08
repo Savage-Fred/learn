@@ -1,0 +1,9 @@
+# Cloudflare Pages header rules for learn.willmccarty.io
+# https://developers.cloudflare.com/pages/configuration/headers/
+/*
+  Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self' http://127.0.0.1:8795 ws://127.0.0.1:8795 https://*.ts.net:8795 wss://*.ts.net:8795; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
