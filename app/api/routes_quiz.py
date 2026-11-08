@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.core import adaptive_engine, state, sanitize_identifier
+from app.core.adaptive_engine import GradingUnavailableError
 
 router = APIRouter(prefix="/quiz", tags=["Quiz"])
 
@@ -59,6 +60,8 @@ async def quiz_turn(req: QuizTurnRequest):
             user_response=user_answer,
         )
         return result
+    except GradingUnavailableError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except ValueError as e:
